@@ -28,7 +28,17 @@ export interface InvoiceFilters {
 }
 
 class InvoiceService {
-  private mockInvoices = [...MOCK_INVOICES]
+  private get mockInvoices(): Invoice[] {
+    if (typeof window === 'undefined') return [...MOCK_INVOICES]
+    const stored = localStorage.getItem('mock_invoices')
+    return stored ? JSON.parse(stored) : [...MOCK_INVOICES]
+  }
+
+  private set mockInvoices(value: Invoice[]) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mock_invoices', JSON.stringify(value))
+    }
+  }
 
   async getInvoices(filters?: InvoiceFilters): Promise<PaginatedResponse<Invoice>> {
     if (CONFIG.USE_MOCK) {
@@ -96,7 +106,9 @@ class InvoiceService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      this.mockInvoices.unshift(newInvoice)
+      const invoices = this.mockInvoices
+      invoices.unshift(newInvoice)
+      this.mockInvoices = invoices
       return newInvoice
     }
     const response = await api.post<ApiResponse<Invoice>>('/v1/invoice', data)
@@ -106,7 +118,8 @@ class InvoiceService {
   async generatePaymentAddress(invoiceId: string, data: GenerateAddressData): Promise<Invoice> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
-      const index = this.mockInvoices.findIndex((inv) => inv.id === invoiceId)
+      const invoices = this.mockInvoices
+      const index = invoices.findIndex((inv) => inv.id === invoiceId)
       if (index === -1) {
         throw { message: 'Invoice not found', statusCode: 404 }
       }
@@ -125,18 +138,19 @@ class InvoiceService {
         ).join(''),
       }
 
-      this.mockInvoices[index] = {
-        ...this.mockInvoices[index],
+      invoices[index] = {
+        ...invoices[index],
         status: 'AWAITING_PAYMENT',
         cryptoCurrency: data.token,
-        cryptoAmount: this.mockInvoices[index].amount,
+        cryptoAmount: invoices[index].amount,
         network: data.network,
         paymentAddress: mockAddresses[data.network] || mockAddresses.ethereum,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         updatedAt: new Date().toISOString(),
       }
 
-      return this.mockInvoices[index]
+      this.mockInvoices = invoices
+      return invoices[index]
     }
     const response = await api.post<ApiResponse<Invoice>>(
       `/v1/invoice/${invoiceId}/address`,
