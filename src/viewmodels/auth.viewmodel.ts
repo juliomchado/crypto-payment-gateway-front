@@ -22,7 +22,7 @@ type AuthViewModel = AuthState & AuthActions
 export const useAuthViewModel = create<AuthViewModel>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   error: null,
 
   login: async (credentials: LoginCredentials): Promise<boolean> => {
@@ -75,6 +75,13 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
   },
 
   checkAuth: async (): Promise<void> => {
+    const currentState = useAuthViewModel.getState()
+
+    // Se já está autenticado, não precisa verificar novamente
+    if (currentState.isAuthenticated && currentState.user) {
+      return
+    }
+
     set({ isLoading: true })
     try {
       const user = await authService.getCurrentUser()

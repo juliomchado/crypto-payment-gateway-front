@@ -21,6 +21,9 @@ import type { Store } from '@/models/types'
 const storeSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   isActive: z.boolean(),
+  urlCallback: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  urlReturn: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  urlSuccess: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 })
 
 type StoreFormData = z.infer<typeof storeSchema>
@@ -54,6 +57,9 @@ export function StoreForm({
     defaultValues: {
       name: store?.name || '',
       isActive: store?.isActive ?? true,
+      urlCallback: store?.urlCallback || '',
+      urlReturn: store?.urlReturn || '',
+      urlSuccess: store?.urlSuccess || '',
     },
   })
 
@@ -86,7 +92,7 @@ export function StoreForm({
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Store Name</Label>
+              <Label htmlFor="name">Store Name *</Label>
               <Input
                 id="name"
                 placeholder="My E-commerce"
@@ -96,6 +102,57 @@ export function StoreForm({
               {errors.name && (
                 <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="urlCallback">Callback URL</Label>
+              <Input
+                id="urlCallback"
+                type="url"
+                placeholder="https://yoursite.com/webhook"
+                {...register('urlCallback')}
+                disabled={isLoading}
+              />
+              {errors.urlCallback && (
+                <p className="text-sm text-destructive">{errors.urlCallback.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Webhook URL to receive payment notifications
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="urlReturn">Return URL</Label>
+              <Input
+                id="urlReturn"
+                type="url"
+                placeholder="https://yoursite.com/checkout"
+                {...register('urlReturn')}
+                disabled={isLoading}
+              />
+              {errors.urlReturn && (
+                <p className="text-sm text-destructive">{errors.urlReturn.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                URL to return customer after payment
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="urlSuccess">Success URL</Label>
+              <Input
+                id="urlSuccess"
+                type="url"
+                placeholder="https://yoursite.com/success"
+                {...register('urlSuccess')}
+                disabled={isLoading}
+              />
+              {errors.urlSuccess && (
+                <p className="text-sm text-destructive">{errors.urlSuccess.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                URL to redirect on successful payment
+              </p>
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-4">
