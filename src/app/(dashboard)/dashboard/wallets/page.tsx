@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { WalletCard } from '@/components/wallets/wallet-card'
+import { CreateWalletDialog } from '@/components/wallets/create-wallet-dialog'
 import { useWalletViewModel } from '@/viewmodels/wallet.viewmodel'
 import { useToast } from '@/hooks/use-toast'
 import { copyToClipboard } from '@/lib/utils'
@@ -12,6 +13,7 @@ import { copyToClipboard } from '@/lib/utils'
 export default function WalletsPage() {
   const { wallets, isLoading, fetchWallets } = useWalletViewModel()
   const { toast } = useToast()
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchWallets()
@@ -42,7 +44,7 @@ export default function WalletsPage() {
             View your cryptocurrency wallets and balances.
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Wallet
         </Button>
@@ -57,7 +59,9 @@ export default function WalletsPage() {
       ) : wallets.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
           <p className="text-muted-foreground">No wallets yet</p>
-          <Button className="mt-4">Create your first wallet</Button>
+          <Button className="mt-4" onClick={() => setIsCreateDialogOpen(true)}>
+            Create your first wallet
+          </Button>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -66,6 +70,11 @@ export default function WalletsPage() {
           ))}
         </div>
       )}
+
+      <CreateWalletDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   )
 }

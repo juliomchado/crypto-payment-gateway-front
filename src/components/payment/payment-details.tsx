@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import QRCode from 'qrcode.react'
+import { QRCodeSVG } from 'qrcode.react'
 import { Copy, Check } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -99,7 +99,7 @@ export function PaymentDetails({
 
         <div className="flex justify-center">
           <div className="rounded-xl border bg-white p-4">
-            <QRCode value={address} size={200} />
+            <QRCodeSVG value={address} size={200} />
           </div>
         </div>
 

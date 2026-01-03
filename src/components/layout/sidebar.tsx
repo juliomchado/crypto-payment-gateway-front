@@ -96,7 +96,13 @@ export function Sidebar({ className }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+          // Lógica de active melhorada:
+          // - Se for /dashboard, só ativa na rota exata
+          // - Para outras rotas, ativa se pathname começa com o href
+          const isActive =
+            item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname.startsWith(item.href)
 
           return (
             <Link

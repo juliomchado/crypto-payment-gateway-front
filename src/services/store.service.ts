@@ -7,11 +7,17 @@ import type { Store, StoreCurrency, Currency, ApiResponse, PaginatedResponse } f
 export interface CreateStoreData {
   name: string
   merchantId: string
+  urlCallback?: string
+  urlReturn?: string
+  urlSuccess?: string
 }
 
 export interface UpdateStoreData {
   name?: string
   isActive?: boolean
+  urlCallback?: string
+  urlReturn?: string
+  urlSuccess?: string
 }
 
 export interface ConfigureCurrencyData {
@@ -56,6 +62,9 @@ class StoreService {
         merchantId: data.merchantId,
         isActive: true,
         invoiceCount: 0,
+        urlCallback: data.urlCallback,
+        urlReturn: data.urlReturn,
+        urlSuccess: data.urlSuccess,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }

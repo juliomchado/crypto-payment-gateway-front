@@ -31,6 +31,9 @@ export interface Store {
   merchantId: string
   isActive: boolean
   invoiceCount: number
+  urlCallback?: string
+  urlReturn?: string
+  urlSuccess?: string
   createdAt: string
   updatedAt: string
 }
