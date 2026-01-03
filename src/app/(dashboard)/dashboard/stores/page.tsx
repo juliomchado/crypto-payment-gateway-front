@@ -21,6 +21,19 @@ import { useToast } from '@/hooks/use-toast'
 import { MOCK_MERCHANT } from '@/models/mock-data'
 import type { Store } from '@/models/types'
 
+// Default Exchange Rate Source ID for API compatibility
+const DEFAULT_EXCHANGE_RATE_SOURCE_ID = '019b57ef-39ca-743a-a79c-c6f669ce291f'
+
+// Helper to generate slug from name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export default function StoresPage() {
   const { stores, isLoading, fetchStores, createStore, updateStore, deleteStore } =
     useStoreViewModel()
@@ -34,11 +47,23 @@ export default function StoresPage() {
     fetchStores()
   }, [fetchStores])
 
-  const handleCreate = async (data: { name: string; isActive: boolean }) => {
+  const handleCreate = async (data: {
+    name: string
+    isActive: boolean
+    urlCallback?: string
+    urlReturn?: string
+    urlSuccess?: string
+  }) => {
     setIsSubmitting(true)
     const store = await createStore({
       name: data.name,
+      slug: generateSlug(data.name),
       merchantId: MOCK_MERCHANT.id,
+      exchangeRateSourceId: DEFAULT_EXCHANGE_RATE_SOURCE_ID,
+      isActive: data.isActive,
+      urlCallback: data.urlCallback,
+      urlReturn: data.urlReturn,
+      urlSuccess: data.urlSuccess,
     })
     setIsSubmitting(false)
 
@@ -51,11 +76,23 @@ export default function StoresPage() {
     }
   }
 
-  const handleEdit = async (data: { name: string; isActive: boolean }) => {
+  const handleEdit = async (data: {
+    name: string
+    isActive: boolean
+    urlCallback?: string
+    urlReturn?: string
+    urlSuccess?: string
+  }) => {
     if (!editingStore) return
 
     setIsSubmitting(true)
-    const success = await updateStore(editingStore.id, data)
+    const success = await updateStore(editingStore.id, {
+      name: data.name,
+      isActive: data.isActive,
+      urlCallback: data.urlCallback,
+      urlReturn: data.urlReturn,
+      urlSuccess: data.urlSuccess,
+    })
     setIsSubmitting(false)
 
     if (success) {

@@ -4,9 +4,20 @@ import { MOCK_WALLETS, MOCK_MERCHANT } from '@/models/mock-data'
 import { generateId } from '@/lib/utils'
 import type { Wallet, DerivedAddress, ApiResponse } from '@/models/types'
 
+export type ChainType = 'EVM' | 'BITCOIN' | 'SOLANA'
+
 export interface CreateWalletData {
   merchantId: string
-  network: string
+  chainType: ChainType
+}
+
+// Network to ChainType mapping
+const NETWORK_TO_CHAIN_TYPE: Record<string, ChainType> = {
+  'ethereum': 'EVM',
+  'bsc': 'EVM',
+  'polygon': 'EVM',
+  'bitcoin': 'BITCOIN',
+  'solana': 'SOLANA',
 }
 
 class WalletService {
@@ -43,20 +54,27 @@ class WalletService {
       await this.simulateDelay()
 
       const mockAddresses: Record<string, string> = {
-        ethereum: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        bsc: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        solana: Array.from({ length: 44 }, () =>
+        EVM: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
+        BITCOIN: 'bc1q' + Math.random().toString(36).substring(2, 42),
+        SOLANA: Array.from({ length: 44 }, () =>
           'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789'[
             Math.floor(Math.random() * 58)
           ]
         ).join(''),
       }
 
+      // Map chainType to network for backward compatibility
+      const networkMap: Record<ChainType, string> = {
+        'EVM': 'ethereum',
+        'BITCOIN': 'bitcoin',
+        'SOLANA': 'solana',
+      }
+
       const newWallet: Wallet = {
         id: generateId(),
         merchantId: data.merchantId,
-        network: data.network,
-        address: mockAddresses[data.network] || mockAddresses.ethereum,
+        network: networkMap[data.chainType],
+        address: mockAddresses[data.chainType],
         balance: 0,
         derivedAddressCount: 0,
         createdAt: new Date().toISOString(),

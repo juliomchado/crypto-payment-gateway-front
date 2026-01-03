@@ -6,18 +6,33 @@ import type { Store, StoreCurrency, Currency, ApiResponse, PaginatedResponse } f
 
 export interface CreateStoreData {
   name: string
+  slug: string
   merchantId: string
-  urlCallback?: string
-  urlReturn?: string
-  urlSuccess?: string
-}
-
-export interface UpdateStoreData {
-  name?: string
+  exchangeRateSourceId: string
+  description?: string
   isActive?: boolean
   urlCallback?: string
   urlReturn?: string
   urlSuccess?: string
+  defaultPaymentWindow?: number
+  defaultCurrency?: string
+  feePercent?: number
+  feeFixed?: number
+  feeCurrency?: string
+}
+
+export interface UpdateStoreData {
+  name?: string
+  description?: string
+  isActive?: boolean
+  urlCallback?: string
+  urlReturn?: string
+  urlSuccess?: string
+  defaultPaymentWindow?: number
+  defaultCurrency?: string
+  feePercent?: number
+  feeFixed?: number
+  feeCurrency?: string
 }
 
 export interface ConfigureCurrencyData {
@@ -60,7 +75,7 @@ class StoreService {
         id: generateId(),
         name: data.name,
         merchantId: data.merchantId,
-        isActive: true,
+        isActive: data.isActive ?? true,
         invoiceCount: 0,
         urlCallback: data.urlCallback,
         urlReturn: data.urlReturn,
@@ -71,6 +86,8 @@ class StoreService {
       this.mockStores.push(newStore)
       return newStore
     }
+
+    // When using real API, send all required fields
     const response = await api.post<ApiResponse<Store>>('/stores', data)
     return response.data
   }
