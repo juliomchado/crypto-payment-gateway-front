@@ -1,19 +1,22 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { NetworkSelector } from '@/components/payment/network-selector'
 import { CurrencySelector } from '@/components/payment/currency-selector'
 import { PaymentDetails } from '@/components/payment/payment-details'
 import { PaymentStatus } from '@/components/payment/payment-status'
 import { usePaymentViewModel } from '@/viewmodels/payment.viewmodel'
 import { formatCurrency } from '@/lib/utils'
+import type { StoreCurrency } from '@/models/types'
 
 export default function PaymentPage() {
   const params = useParams()
   const invoiceId = params.invoiceId as string
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
 
   const {
     invoice,
@@ -56,9 +59,24 @@ export default function PaymentPage() {
   }
 
   const handleBackToSelection = () => {
+    setSelectedNetwork(null)
     reset()
     initializePayment(invoiceId)
   }
+
+  const handleNetworkSelect = (network: string) => {
+    setSelectedNetwork(network)
+  }
+
+  // Get available networks from currencies
+  const availableNetworks = Array.from(
+    new Set(storeCurrencies.map((sc) => sc.currency.network))
+  )
+
+  // Filter currencies by selected network
+  const filteredCurrencies = selectedNetwork
+    ? storeCurrencies.filter((sc) => sc.currency.network === selectedNetwork)
+    : []
 
   if (step === 'loading' || isLoading) {
     return (
@@ -101,19 +119,44 @@ export default function PaymentPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {step === 'select_currency' && (
+          {step === 'select_currency' && !selectedNetwork && (
             <>
               <div className="text-center">
-                <h2 className="text-lg font-semibold">Select Payment Method</h2>
+                <h2 className="text-lg font-semibold">Select Network</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Choose a blockchain network
+                </p>
+              </div>
+              <NetworkSelector
+                selectedNetwork={selectedNetwork}
+                availableNetworks={availableNetworks}
+                onSelect={handleNetworkSelect}
+              />
+            </>
+          )}
+
+          {step === 'select_currency' && selectedNetwork && (
+            <>
+              <div className="text-center">
+                <h2 className="text-lg font-semibold">Select Currency</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Choose a cryptocurrency to complete your payment
                 </p>
               </div>
               <CurrencySelector
-                currencies={storeCurrencies}
+                currencies={filteredCurrencies}
                 selectedCurrency={selectedCurrency}
                 onSelect={handleCurrencySelect}
               />
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedNetwork(null)}
+                >
+                  ← Back to Network Selection
+                </Button>
+              </div>
             </>
           )}
 
