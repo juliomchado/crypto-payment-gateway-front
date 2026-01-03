@@ -28,7 +28,7 @@ import { MOCK_MERCHANT } from '@/models/mock-data'
 
 const createWalletSchema = z.object({
   name: z.string().min(1, 'Wallet name is required'),
-  network: z.string().min(1, 'Network is required'),
+  chainType: z.enum(['EVM', 'BITCOIN', 'SOLANA']),
   type: z.enum(['HOT', 'COLD', 'SETTLEMENT']),
 })
 
@@ -55,7 +55,7 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
     resolver: zodResolver(createWalletSchema),
     defaultValues: {
       type: 'HOT',
-      network: 'ethereum',
+      chainType: 'EVM',
     },
   })
 
@@ -63,7 +63,7 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
     setIsSubmitting(true)
     try {
       await createWallet({
-        ...data,
+        chainType: data.chainType,
         merchantId: MOCK_MERCHANT.id,
       })
       toast({
@@ -108,24 +108,23 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="network">Network *</Label>
+            <Label htmlFor="chainType">Chain Type *</Label>
             <Select
-              value={watch('network')}
-              onValueChange={(value) => setValue('network', value)}
+              value={watch('chainType')}
+              onValueChange={(value) => setValue('chainType', value as 'EVM' | 'BITCOIN' | 'SOLANA')}
               disabled={isSubmitting}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ethereum">Ethereum</SelectItem>
-                <SelectItem value="bsc">Binance Smart Chain</SelectItem>
-                <SelectItem value="polygon">Polygon</SelectItem>
-                <SelectItem value="solana">Solana</SelectItem>
+                <SelectItem value="EVM">EVM (Ethereum, BSC, Polygon)</SelectItem>
+                <SelectItem value="BITCOIN">Bitcoin</SelectItem>
+                <SelectItem value="SOLANA">Solana</SelectItem>
               </SelectContent>
             </Select>
-            {errors.network && (
-              <p className="text-sm text-destructive">{errors.network.message}</p>
+            {errors.chainType && (
+              <p className="text-sm text-destructive">{errors.chainType.message}</p>
             )}
           </div>
 
