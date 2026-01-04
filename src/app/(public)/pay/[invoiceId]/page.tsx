@@ -31,6 +31,7 @@ export default function PaymentPage() {
     generateAddress,
     updateTimeRemaining,
     setExpired,
+    backToSelection,
     reset,
   } = usePaymentViewModel()
 
@@ -65,8 +66,7 @@ export default function PaymentPage() {
 
   const handleBackToSelection = () => {
     setSelectedNetwork(null)
-    reset()
-    initializePayment(invoiceId)
+    backToSelection()
   }
 
   const handleNetworkSelect = (network: string) => {
