@@ -118,10 +118,6 @@ export default function PaymentPage() {
 
         <PaymentStatus
           status="expired"
-          onRetry={() => {
-            setSelectedNetwork(null)
-            backToSelection()
-          }}
         />
 
         <div className="text-center">
