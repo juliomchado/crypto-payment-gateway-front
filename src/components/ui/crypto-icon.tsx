@@ -6,7 +6,7 @@ interface CryptoIconProps {
   className?: string
 }
 
-// Mapeamento de símbolos para nomes corretos
+// Mapeamento de símbolos para nomes de arquivo
 const SYMBOL_MAP: Record<string, string> = {
   // Cryptocurrencies
   'BTC': 'btc',
@@ -43,7 +43,7 @@ export function CryptoIcon({ symbol, size = 24, className }: CryptoIconProps) {
       style={{ width: size, height: size }}
     >
       <img
-        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/${iconName}.svg`}
+        src={`https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${iconName}.svg`}
         alt={symbol}
         width={size}
         height={size}
