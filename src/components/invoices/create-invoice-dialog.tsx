@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useInvoiceViewModel } from '@/viewmodels/invoice.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
@@ -32,7 +33,12 @@ const createInvoiceSchema = z.object({
   amount: z.string().min(1, 'Amount is required')
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Must be a valid positive number'),
   currency: z.string().min(1, 'Currency is required'),
+  title: z.string().min(3, 'Title must be at least 3 characters').max(150, 'Title must be at most 150 characters').optional().or(z.literal('')),
+  description: z.string().min(3, 'Description must be at least 3 characters').max(500, 'Description must be at most 500 characters').optional().or(z.literal('')),
   customerEmail: z.string().email('Must be a valid email').optional().or(z.literal('')),
+  lifespan: z.string().min(1, 'Expiration time is required'),
+  isPaymentMultiple: z.boolean().optional(),
+  accuracyPaymentPercent: z.string().optional(),
 })
 
 type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>
@@ -49,6 +55,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [createdInvoice, setCreatedInvoice] = useState<{ id: string; paymentUrl: string } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
 
   const {
     register,
@@ -61,6 +68,9 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       currency: 'USD',
+      lifespan: '3600', // 1 hour default
+      isPaymentMultiple: false,
+      accuracyPaymentPercent: '0',
     },
   })
 
@@ -90,6 +100,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
   const handleClose = () => {
     setCreatedInvoice(null)
     setCopied(false)
+    setCurrentStep(1)
     reset()
     onOpenChange(false)
   }
@@ -102,7 +113,12 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
         orderId: data.orderId,
         amount: Number(data.amount),
         currency: data.currency,
+        title: data.title || undefined,
+        description: data.description || undefined,
         customerEmail: data.customerEmail || undefined,
+        lifespan: Number(data.lifespan),
+        isPaymentMultiple: data.isPaymentMultiple,
+        accuracyPaymentPercent: data.accuracyPaymentPercent ? Number(data.accuracyPaymentPercent) : undefined,
       })
 
       if (invoice) {
@@ -195,6 +211,24 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Step Indicator */}
+          <div className="flex items-center justify-center gap-2 pb-2">
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+              currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              1
+            </div>
+            <div className="h-0.5 w-12 bg-border" />
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+              currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              2
+            </div>
+          </div>
+
+          {currentStep === 1 ? (
+            // STEP 1: Basic Fields
+            <>
           <div className="space-y-2">
             <Label htmlFor="storeId">Store *</Label>
             <Select
@@ -274,21 +308,46 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="customerEmail">Customer Email</Label>
-            <Input
-              id="customerEmail"
-              type="email"
-              placeholder="customer@example.com"
-              {...register('customerEmail')}
-              disabled={isSubmitting}
-            />
-            {errors.customerEmail && (
-              <p className="text-sm text-destructive">{errors.customerEmail.message}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Optional - Send payment link to customer
-            </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customerEmail">Customer Email</Label>
+              <Input
+                id="customerEmail"
+                type="email"
+                placeholder="customer@example.com"
+                {...register('customerEmail')}
+                disabled={isSubmitting}
+              />
+              {errors.customerEmail && (
+                <p className="text-sm text-destructive">{errors.customerEmail.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lifespan">Expiration *</Label>
+              <Select
+                value={watch('lifespan')}
+                onValueChange={(value) => setValue('lifespan', value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="300">5 min</SelectItem>
+                  <SelectItem value="900">15 min</SelectItem>
+                  <SelectItem value="1800">30 min</SelectItem>
+                  <SelectItem value="3600">1 hour</SelectItem>
+                  <SelectItem value="7200">2 hours</SelectItem>
+                  <SelectItem value="14400">4 hours</SelectItem>
+                  <SelectItem value="28800">8 hours</SelectItem>
+                  <SelectItem value="43200">12 hours</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.lifespan && (
+                <p className="text-sm text-destructive">{errors.lifespan.message}</p>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -300,11 +359,116 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Invoice
+            <Button
+              type="button"
+              onClick={() => setCurrentStep(2)}
+              disabled={isSubmitting}
+            >
+              Next: Optional Fields →
             </Button>
           </div>
+          </>
+          ) : (
+            // STEP 2: Optional & Advanced Fields
+            <>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                placeholder="Product or service name"
+                {...register('title')}
+                disabled={isSubmitting}
+              />
+              {errors.title && (
+                <p className="text-sm text-destructive">{errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                placeholder="Detailed description"
+                {...register('description')}
+                disabled={isSubmitting}
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive">{errors.description.message}</p>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3 rounded-lg border p-3">
+              <Checkbox
+                id="isPaymentMultiple"
+                checked={watch('isPaymentMultiple')}
+                onCheckedChange={(checked) => setValue('isPaymentMultiple', checked as boolean)}
+                disabled={isSubmitting}
+              />
+              <div className="flex-1 space-y-0.5">
+                <Label htmlFor="isPaymentMultiple" className="cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Allow Multiple Payments
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Customer can pay this invoice in multiple transactions
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accuracyPaymentPercent">Payment Accuracy Margin (%)</Label>
+              <Select
+                value={watch('accuracyPaymentPercent')}
+                onValueChange={(value) => setValue('accuracyPaymentPercent', value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">0% - Exact amount</SelectItem>
+                  <SelectItem value="1">±1%</SelectItem>
+                  <SelectItem value="2">±2%</SelectItem>
+                  <SelectItem value="3">±3%</SelectItem>
+                  <SelectItem value="4">±4%</SelectItem>
+                  <SelectItem value="5">±5%</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.accuracyPaymentPercent && (
+                <p className="text-sm text-destructive">{errors.accuracyPaymentPercent.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Allow payment variance for crypto price fluctuations
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-between gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCurrentStep(1)}
+              disabled={isSubmitting}
+            >
+              ← Back
+            </Button>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setCurrentStep(1)}
+                disabled={isSubmitting}
+              >
+                Skip
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Invoice
+              </Button>
+            </div>
+          </div>
+          </>
+          )}
         </form>
         )}
       </DialogContent>

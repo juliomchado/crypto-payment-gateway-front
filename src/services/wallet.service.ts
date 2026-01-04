@@ -4,20 +4,28 @@ import { MOCK_WALLETS, MOCK_MERCHANT } from '@/models/mock-data'
 import { generateId } from '@/lib/utils'
 import type { Wallet, DerivedAddress, ApiResponse } from '@/models/types'
 
-export type ChainType = 'EVM' | 'BITCOIN' | 'SOLANA'
+// Backend NetworkStandard enum values
+export type NetworkStandard = 'ERC_20' | 'SPL' | 'BITCOIN'
 
 export interface CreateWalletData {
   merchantId: string
-  chainType: ChainType
+  chainType: NetworkStandard
 }
 
-// Network to ChainType mapping
-const NETWORK_TO_CHAIN_TYPE: Record<string, ChainType> = {
-  'ethereum': 'EVM',
-  'bsc': 'EVM',
-  'polygon': 'EVM',
+// User-friendly names for network standards
+export const NETWORK_STANDARD_NAMES: Record<NetworkStandard, string> = {
+  ERC_20: 'EVM (Ethereum, BSC, Polygon)',
+  SPL: 'Solana',
+  BITCOIN: 'Bitcoin'
+}
+
+// Network to NetworkStandard mapping
+const NETWORK_TO_STANDARD: Record<string, NetworkStandard> = {
+  'ethereum': 'ERC_20',
+  'bsc': 'ERC_20',
+  'polygon': 'ERC_20',
   'bitcoin': 'BITCOIN',
-  'solana': 'SOLANA',
+  'solana': 'SPL',
 }
 
 class WalletService {
@@ -53,21 +61,21 @@ class WalletService {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
 
-      const mockAddresses: Record<string, string> = {
-        EVM: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
+      const mockAddresses: Record<NetworkStandard, string> = {
+        ERC_20: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
         BITCOIN: 'bc1q' + Math.random().toString(36).substring(2, 42),
-        SOLANA: Array.from({ length: 44 }, () =>
+        SPL: Array.from({ length: 44 }, () =>
           'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789'[
             Math.floor(Math.random() * 58)
           ]
         ).join(''),
       }
 
-      // Map chainType to network for backward compatibility
-      const networkMap: Record<ChainType, string> = {
-        'EVM': 'ethereum',
+      // Map NetworkStandard to network for storage
+      const networkMap: Record<NetworkStandard, string> = {
+        'ERC_20': 'ethereum',
         'BITCOIN': 'bitcoin',
-        'SOLANA': 'solana',
+        'SPL': 'solana',
       }
 
       const newWallet: Wallet = {

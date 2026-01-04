@@ -69,6 +69,14 @@ export type InvoiceStatus =
   | 'CANCELLED'
   | 'REFUNDED'
 
+// Invoice Rate from backend (exchange rates locked at creation)
+export interface InvoiceRate {
+  currencyId: string
+  networkId: string
+  rate: string        // Decimal as string for precision
+  payerAmount: string // Amount in crypto with 18 decimals precision
+}
+
 export interface Invoice {
   id: string
   storeId: string
@@ -85,6 +93,7 @@ export interface Invoice {
   paidAt?: string
   customerEmail?: string
   metadata?: Record<string, unknown>
+  rates?: InvoiceRate[]  // Exchange rates from backend
   createdAt: string
   updatedAt: string
 }
