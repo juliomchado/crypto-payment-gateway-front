@@ -222,19 +222,16 @@ export default function InvoiceDetailPage() {
             )}
 
             {selectedInvoice.paymentAddress && (
-              <>
-                <Separator />
-                <Link
-                  href={`/pay/${selectedInvoice.id}`}
-                  target="_blank"
-                  className="w-full"
-                >
-                  <Button variant="outline" className="w-full">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Payment Page
-                  </Button>
-                </Link>
-              </>
+              <Link
+                href={`/pay/${selectedInvoice.id}`}
+                target="_blank"
+                className="w-full"
+              >
+                <Button variant="outline" className="w-full">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Payment Page
+                </Button>
+              </Link>
             )}
           </CardContent>
         </Card>
