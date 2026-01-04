@@ -179,7 +179,7 @@ export function CreateKeyDialog({
             <div className="space-y-2">
               <Label>Store</Label>
               <Select
-                value={selectedStoreId}
+                value={selectedStoreId || ''}
                 onValueChange={(value) => setValue('storeId', value)}
                 disabled={isLoading}
               >

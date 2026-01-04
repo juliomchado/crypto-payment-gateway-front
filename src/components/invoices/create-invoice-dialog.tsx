@@ -211,265 +211,263 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center gap-2 pb-2">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-              currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
-              1
-            </div>
-            <div className="h-0.5 w-12 bg-border" />
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-              currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
-              2
-            </div>
-          </div>
-
-          {currentStep === 1 ? (
-            // STEP 1: Basic Fields
-            <>
-          <div className="space-y-2">
-            <Label htmlFor="storeId">Store *</Label>
-            <Select
-              value={selectedStoreId}
-              onValueChange={(value) => setValue('storeId', value)}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a store" />
-              </SelectTrigger>
-              <SelectContent>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.storeId && (
-              <p className="text-sm text-destructive">{errors.storeId.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="orderId">Order ID *</Label>
-            <Input
-              id="orderId"
-              placeholder="ORDER-12345"
-              {...register('orderId')}
-              disabled={isSubmitting}
-            />
-            {errors.orderId && (
-              <p className="text-sm text-destructive">{errors.orderId.message}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Unique identifier for this order
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="99.99"
-                {...register('amount')}
-                disabled={isSubmitting}
-              />
-              {errors.amount && (
-                <p className="text-sm text-destructive">{errors.amount.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency *</Label>
-              <Select
-                value={watch('currency')}
-                onValueChange={(value) => setValue('currency', value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="BRL">BRL</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.currency && (
-                <p className="text-sm text-destructive">{errors.currency.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="customerEmail">Customer Email</Label>
-              <Input
-                id="customerEmail"
-                type="email"
-                placeholder="customer@example.com"
-                {...register('customerEmail')}
-                disabled={isSubmitting}
-              />
-              {errors.customerEmail && (
-                <p className="text-sm text-destructive">{errors.customerEmail.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lifespan">Expiration *</Label>
-              <Select
-                value={watch('lifespan')}
-                onValueChange={(value) => setValue('lifespan', value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="300">5 min</SelectItem>
-                  <SelectItem value="900">15 min</SelectItem>
-                  <SelectItem value="1800">30 min</SelectItem>
-                  <SelectItem value="3600">1 hour</SelectItem>
-                  <SelectItem value="7200">2 hours</SelectItem>
-                  <SelectItem value="14400">4 hours</SelectItem>
-                  <SelectItem value="28800">8 hours</SelectItem>
-                  <SelectItem value="43200">12 hours</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.lifespan && (
-                <p className="text-sm text-destructive">{errors.lifespan.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setCurrentStep(2)}
-              disabled={isSubmitting}
-            >
-              Next: Optional Fields →
-            </Button>
-          </div>
-          </>
-          ) : (
-            // STEP 2: Optional & Advanced Fields
-            <>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                placeholder="Product or service name"
-                {...register('title')}
-                disabled={isSubmitting}
-              />
-              {errors.title && (
-                <p className="text-sm text-destructive">{errors.title.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                placeholder="Detailed description"
-                {...register('description')}
-                disabled={isSubmitting}
-              />
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-3 rounded-lg border p-3">
-              <Checkbox
-                id="isPaymentMultiple"
-                checked={watch('isPaymentMultiple')}
-                onCheckedChange={(checked) => setValue('isPaymentMultiple', checked as boolean)}
-                disabled={isSubmitting}
-              />
-              <div className="flex-1 space-y-0.5">
-                <Label htmlFor="isPaymentMultiple" className="cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Allow Multiple Payments
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Customer can pay this invoice in multiple transactions
-                </p>
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-2 pb-2">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}>
+                1
+              </div>
+              <div className="h-0.5 w-12 bg-border" />
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}>
+                2
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="accuracyPaymentPercent">Payment Accuracy Margin (%)</Label>
-              <Select
-                value={watch('accuracyPaymentPercent')}
-                onValueChange={(value) => setValue('accuracyPaymentPercent', value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">0% - Exact amount</SelectItem>
-                  <SelectItem value="1">±1%</SelectItem>
-                  <SelectItem value="2">±2%</SelectItem>
-                  <SelectItem value="3">±3%</SelectItem>
-                  <SelectItem value="4">±4%</SelectItem>
-                  <SelectItem value="5">±5%</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.accuracyPaymentPercent && (
-                <p className="text-sm text-destructive">{errors.accuracyPaymentPercent.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Allow payment variance for crypto price fluctuations
-              </p>
-            </div>
-          </div>
+            {currentStep === 1 ? (
+              // STEP 1: Basic Fields
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="storeId">Store *</Label>
+                  <Select
+                    value={selectedStoreId || ''}
+                    onValueChange={(value) => setValue('storeId', value)}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a store" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stores.map((store) => (
+                        <SelectItem key={store.id} value={store.id}>
+                          {store.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.storeId && (
+                    <p className="text-sm text-destructive">{errors.storeId.message}</p>
+                  )}
+                </div>
 
-          <div className="flex justify-between gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
-              disabled={isSubmitting}
-            >
-              ← Back
-            </Button>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setCurrentStep(1)}
-                disabled={isSubmitting}
-              >
-                Skip
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Invoice
-              </Button>
-            </div>
-          </div>
-          </>
-          )}
-        </form>
+                <div className="space-y-2">
+                  <Label htmlFor="orderId">Order ID *</Label>
+                  <Input
+                    id="orderId"
+                    placeholder="ORDER-12345"
+                    {...register('orderId')}
+                    disabled={isSubmitting}
+                  />
+                  {errors.orderId && (
+                    <p className="text-sm text-destructive">{errors.orderId.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Unique identifier for this order
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount *</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="99.99"
+                      {...register('amount')}
+                      disabled={isSubmitting}
+                    />
+                    {errors.amount && (
+                      <p className="text-sm text-destructive">{errors.amount.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency *</Label>
+                    <Select
+                      value={watch('currency')}
+                      onValueChange={(value) => setValue('currency', value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="BRL">BRL</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.currency && (
+                      <p className="text-sm text-destructive">{errors.currency.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="customerEmail">Customer Email</Label>
+                    <Input
+                      id="customerEmail"
+                      type="email"
+                      placeholder="customer@example.com"
+                      {...register('customerEmail')}
+                      disabled={isSubmitting}
+                    />
+                    {errors.customerEmail && (
+                      <p className="text-sm text-destructive">{errors.customerEmail.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lifespan">Expiration *</Label>
+                    <Select
+                      value={watch('lifespan')}
+                      onValueChange={(value) => setValue('lifespan', value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="300">5 min</SelectItem>
+                        <SelectItem value="900">15 min</SelectItem>
+                        <SelectItem value="1800">30 min</SelectItem>
+                        <SelectItem value="3600">1 hour</SelectItem>
+                        <SelectItem value="7200">2 hours</SelectItem>
+                        <SelectItem value="14400">4 hours</SelectItem>
+                        <SelectItem value="28800">8 hours</SelectItem>
+                        <SelectItem value="43200">12 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.lifespan && (
+                      <p className="text-sm text-destructive">{errors.lifespan.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setCurrentStep(2)}
+                    disabled={isSubmitting}
+                  >
+                    Next: Optional Fields →
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // STEP 2: Optional & Advanced Fields
+              <>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      placeholder="Product or service name"
+                      {...register('title')}
+                      disabled={isSubmitting}
+                    />
+                    {errors.title && (
+                      <p className="text-sm text-destructive">{errors.title.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Detailed description"
+                      {...register('description')}
+                      disabled={isSubmitting}
+                    />
+                    {errors.description && (
+                      <p className="text-sm text-destructive">{errors.description.message}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-3 rounded-lg border p-3">
+                    <Checkbox
+                      id="isPaymentMultiple"
+                      checked={watch('isPaymentMultiple')}
+                      onCheckedChange={(checked) => setValue('isPaymentMultiple', checked as boolean)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="flex-1 space-y-0.5">
+                      <Label htmlFor="isPaymentMultiple" className="cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Allow Multiple Payments
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Customer can pay this invoice in multiple transactions
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="accuracyPaymentPercent">Payment Accuracy Margin (%)</Label>
+                    <Select
+                      value={watch('accuracyPaymentPercent')}
+                      onValueChange={(value) => setValue('accuracyPaymentPercent', value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0% - Exact amount</SelectItem>
+                        <SelectItem value="1">±1%</SelectItem>
+                        <SelectItem value="2">±2%</SelectItem>
+                        <SelectItem value="3">±3%</SelectItem>
+                        <SelectItem value="4">±4%</SelectItem>
+                        <SelectItem value="5">±5%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.accuracyPaymentPercent && (
+                      <p className="text-sm text-destructive">{errors.accuracyPaymentPercent.message}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Allow payment variance for crypto price fluctuations
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    disabled={isSubmitting}
+                  >
+                    ← Back
+                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setCurrentStep(1)}
+                      disabled={isSubmitting}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Invoice
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </form>
         )}
       </DialogContent>
     </Dialog>
