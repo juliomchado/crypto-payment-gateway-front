@@ -103,6 +103,65 @@ export default function PaymentPage() {
     )
   }
 
+  // Se a invoice está expirada, mostra apenas a tela de expiração
+  if (step === 'expired') {
+    return (
+      <div className="w-full max-w-lg space-y-3 px-4 sm:space-y-4 sm:px-0">
+        <div className="text-center">
+          <div className="mb-1.5 flex items-center justify-center sm:mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary sm:h-9 sm:w-9">
+              <span className="text-sm font-bold text-primary-foreground sm:text-base">C</span>
+            </div>
+          </div>
+          <h1 className="text-base font-bold sm:text-lg">{invoice?.store?.name || 'Store'}</h1>
+        </div>
+
+        <PaymentStatus
+          status="expired"
+          onRetry={() => {
+            setSelectedNetwork(null)
+            backToSelection()
+          }}
+        />
+
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">
+            Powered by <span className="font-semibold">CryptoGateway</span>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Se foi pago com sucesso, mostra a tela de sucesso
+  if (step === 'success') {
+    return (
+      <div className="w-full max-w-lg space-y-3 px-4 sm:space-y-4 sm:px-0">
+        <div className="text-center">
+          <div className="mb-1.5 flex items-center justify-center sm:mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary sm:h-9 sm:w-9">
+              <span className="text-sm font-bold text-primary-foreground sm:text-base">C</span>
+            </div>
+          </div>
+          <h1 className="text-base font-bold sm:text-lg">{invoice?.store?.name || 'Store'}</h1>
+        </div>
+
+        <PaymentStatus
+          status="success"
+          amount={invoice?.amount}
+          currency={invoice?.currency}
+          txHash="0x123456789abcdef"
+        />
+
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">
+            Powered by <span className="font-semibold">CryptoGateway</span>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full max-w-lg space-y-3 px-4 sm:space-y-4 sm:px-0">
       <div className="text-center">
@@ -176,22 +235,6 @@ export default function PaymentPage() {
               status="confirming"
               amount={invoice.amount}
               currency={invoice.currency}
-            />
-          )}
-
-          {step === 'success' && (
-            <PaymentStatus
-              status="success"
-              amount={invoice.amount}
-              currency={invoice.currency}
-              txHash="0x123456789abcdef"
-            />
-          )}
-
-          {step === 'expired' && (
-            <PaymentStatus
-              status="expired"
-              onRetry={handleBackToSelection}
             />
           )}
         </CardContent>
