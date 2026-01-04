@@ -104,35 +104,35 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="w-full max-w-2xl space-y-6">
+    <div className="w-full max-w-lg space-y-4">
       <div className="text-center">
         <div className="mb-2 flex items-center justify-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">C</span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <span className="text-base font-bold text-primary-foreground">C</span>
           </div>
         </div>
-        <h1 className="text-xl font-bold">{invoice.store?.name || 'Store'}</h1>
+        <h1 className="text-lg font-bold">{invoice.store?.name || 'Store'}</h1>
       </div>
 
       <Card>
-        <CardHeader className="text-center">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Order #{invoice.orderId}</p>
-            <p className="text-3xl font-bold">
+        <CardHeader className="pb-4 text-center">
+          <div className="space-y-0.5">
+            <p className="text-xs text-muted-foreground">Order #{invoice.orderId}</p>
+            <p className="text-2xl font-bold">
               {formatCurrency(invoice.amount, invoice.currency)}
             </p>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {step === 'select_currency' && (
             <>
               <div className="text-center">
-                <h2 className="text-lg font-semibold">Select Payment Method</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h2 className="text-base font-semibold">Select Payment Method</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Choose network and currency to complete your payment
                 </p>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <NetworkSelector
                   selectedNetwork={selectedNetwork}
                   availableNetworks={availableNetworks}
@@ -146,11 +146,10 @@ export default function PaymentPage() {
                   />
                 )}
                 {selectedNetwork && selectedCurrency && (
-                  <div className="flex justify-center pt-2">
+                  <div className="flex justify-center">
                     <Button
                       onClick={handleContinue}
                       className="w-full"
-                      size="lg"
                     >
                       Continue to Payment
                     </Button>
