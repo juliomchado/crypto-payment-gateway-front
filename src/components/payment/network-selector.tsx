@@ -1,5 +1,13 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 interface NetworkOption {
   id: string
@@ -57,30 +65,38 @@ export function NetworkSelector({
   )
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {filteredNetworks.map((network) => (
-        <Card
-          key={network.id}
-          className={cn(
-            'cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50',
-            selectedNetwork === network.id &&
-              'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
-          )}
-          onClick={() => onSelect(network.id)}
-        >
-          <CardContent className="flex flex-col items-center justify-center p-6">
-            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-              {network.icon}
-            </div>
-            <div className="text-center">
-              <div className="font-semibold">{network.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {network.description}
+    <div className="space-y-2">
+      <Label htmlFor="network-select">Select Network</Label>
+      <Select value={selectedNetwork || ''} onValueChange={onSelect}>
+        <SelectTrigger id="network-select" className="w-full">
+          <SelectValue placeholder="Choose a network" />
+        </SelectTrigger>
+        <SelectContent>
+          {filteredNetworks.map((network) => (
+            <SelectItem key={network.id} value={network.id}>
+              <div className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                  {network.icon}
+                </span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{network.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {network.description}
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {selectedNetwork && !['ethereum', 'bsc', 'polygon'].includes(selectedNetwork) && (
+        <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
+            Atenção: Pagamentos em redes não-EVM estão temporariamente limitados devido a manutenção do backend.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   )
 }

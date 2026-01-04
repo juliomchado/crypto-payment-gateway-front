@@ -1,9 +1,10 @@
 'use client'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { User, Shield } from 'lucide-react'
+import { User, Shield, Palette } from 'lucide-react'
 import { ProfileForm } from '@/components/settings/profile-form'
 import { SecurityForm } from '@/components/settings/security-form'
+import { AppearanceForm } from '@/components/settings/appearance-form'
 
 export default function SettingsPage() {
   return (
@@ -25,6 +26,10 @@ export default function SettingsPage() {
             <Shield className="mr-2 h-4 w-4" />
             Security
           </TabsTrigger>
+          <TabsTrigger value="appearance">
+            <Palette className="mr-2 h-4 w-4" />
+            Appearance
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -33,6 +38,10 @@ export default function SettingsPage() {
 
         <TabsContent value="security">
           <SecurityForm />
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          <AppearanceForm />
         </TabsContent>
       </Tabs>
     </div>

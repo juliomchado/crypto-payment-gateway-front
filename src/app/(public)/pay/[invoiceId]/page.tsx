@@ -22,6 +22,7 @@ export default function PaymentPage() {
     invoice,
     storeCurrencies,
     selectedCurrency,
+    selectedRate,
     step,
     timeRemaining,
     isLoading,
@@ -49,12 +50,16 @@ export default function PaymentPage() {
     }
   }, [step, timeRemaining, updateTimeRemaining])
 
-  const handleCurrencySelect = async (currency: typeof selectedCurrency) => {
+  const handleCurrencySelect = (currency: typeof selectedCurrency) => {
     if (!currency || !invoice) return
-    await selectCurrency(currency)
+    selectCurrency(currency)
+  }
+
+  const handleContinue = async () => {
+    if (!selectedCurrency || !invoice) return
     await generateAddress({
-      token: currency.currency.symbol,
-      network: currency.currency.network,
+      token: selectedCurrency.currency.symbol,
+      network: selectedCurrency.currency.network,
     })
   }
 
@@ -119,54 +124,50 @@ export default function PaymentPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {step === 'select_currency' && !selectedNetwork && (
+          {step === 'select_currency' && (
             <>
               <div className="text-center">
-                <h2 className="text-lg font-semibold">Select Network</h2>
+                <h2 className="text-lg font-semibold">Select Payment Method</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Choose a blockchain network
+                  Choose network and currency to complete your payment
                 </p>
               </div>
-              <NetworkSelector
-                selectedNetwork={selectedNetwork}
-                availableNetworks={availableNetworks}
-                onSelect={handleNetworkSelect}
-              />
-            </>
-          )}
-
-          {step === 'select_currency' && selectedNetwork && (
-            <>
-              <div className="text-center">
-                <h2 className="text-lg font-semibold">Select Currency</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Choose a cryptocurrency to complete your payment
-                </p>
-              </div>
-              <CurrencySelector
-                currencies={filteredCurrencies}
-                selectedCurrency={selectedCurrency}
-                onSelect={handleCurrencySelect}
-              />
-              <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedNetwork(null)}
-                >
-                  ← Back to Network Selection
-                </Button>
+              <div className="space-y-4">
+                <NetworkSelector
+                  selectedNetwork={selectedNetwork}
+                  availableNetworks={availableNetworks}
+                  onSelect={handleNetworkSelect}
+                />
+                {selectedNetwork && (
+                  <CurrencySelector
+                    currencies={filteredCurrencies}
+                    selectedCurrency={selectedCurrency}
+                    onSelect={handleCurrencySelect}
+                  />
+                )}
+                {selectedNetwork && selectedCurrency && (
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      onClick={handleContinue}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Continue to Payment
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
 
           {step === 'awaiting_payment' && invoice.paymentAddress && (
             <PaymentDetails
-              amount={invoice.cryptoAmount?.toString() || invoice.amount.toString()}
+              amount={selectedRate?.payerAmount || invoice.cryptoAmount?.toString() || invoice.amount.toString()}
               currency={invoice.cryptoCurrency || invoice.currency}
               address={invoice.paymentAddress}
               network={invoice.network || 'ethereum'}
               timeRemaining={timeRemaining}
+              exchangeRate={selectedRate?.rate}
               onBack={handleBackToSelection}
             />
           )}

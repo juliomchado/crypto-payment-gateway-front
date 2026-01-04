@@ -25,11 +25,10 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useWalletViewModel } from '@/viewmodels/wallet.viewmodel'
 import { MOCK_MERCHANT } from '@/models/mock-data'
+import { NETWORK_STANDARD_NAMES, type NetworkStandard } from '@/services/wallet.service'
 
 const createWalletSchema = z.object({
-  name: z.string().min(1, 'Wallet name is required'),
-  chainType: z.enum(['EVM', 'BITCOIN', 'SOLANA']),
-  type: z.enum(['HOT', 'COLD', 'SETTLEMENT']),
+  chainType: z.enum(['ERC_20', 'SPL', 'BITCOIN']),
 })
 
 type CreateWalletFormData = z.infer<typeof createWalletSchema>
@@ -45,7 +44,6 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     reset,
@@ -54,8 +52,7 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
   } = useForm<CreateWalletFormData>({
     resolver: zodResolver(createWalletSchema),
     defaultValues: {
-      type: 'HOT',
-      chainType: 'EVM',
+      chainType: 'ERC_20',
     },
   })
 
@@ -95,60 +92,26 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Wallet Name *</Label>
-            <Input
-              id="name"
-              placeholder="Main Wallet"
-              {...register('name')}
-              disabled={isSubmitting}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="chainType">Chain Type *</Label>
+            <Label htmlFor="chainType">Network Type *</Label>
             <Select
               value={watch('chainType')}
-              onValueChange={(value) => setValue('chainType', value as 'EVM' | 'BITCOIN' | 'SOLANA')}
+              onValueChange={(value) => setValue('chainType', value as NetworkStandard)}
               disabled={isSubmitting}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="EVM">EVM (Ethereum, BSC, Polygon)</SelectItem>
-                <SelectItem value="BITCOIN">Bitcoin</SelectItem>
-                <SelectItem value="SOLANA">Solana</SelectItem>
+                <SelectItem value="ERC_20">{NETWORK_STANDARD_NAMES.ERC_20}</SelectItem>
+                <SelectItem value="SPL">{NETWORK_STANDARD_NAMES.SPL}</SelectItem>
+                <SelectItem value="BITCOIN">{NETWORK_STANDARD_NAMES.BITCOIN}</SelectItem>
               </SelectContent>
             </Select>
             {errors.chainType && (
               <p className="text-sm text-destructive">{errors.chainType.message}</p>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="type">Wallet Type *</Label>
-            <Select
-              value={watch('type')}
-              onValueChange={(value) => setValue('type', value as 'HOT' | 'COLD' | 'SETTLEMENT')}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="HOT">Hot Wallet</SelectItem>
-                <SelectItem value="COLD">Cold Wallet</SelectItem>
-                <SelectItem value="SETTLEMENT">Settlement Wallet</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.type && (
-              <p className="text-sm text-destructive">{errors.type.message}</p>
-            )}
             <p className="text-xs text-muted-foreground">
-              Hot wallets are used for daily operations
+              Select the blockchain network for this wallet
             </p>
           </div>
 

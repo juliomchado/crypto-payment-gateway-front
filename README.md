@@ -183,6 +183,23 @@ Warning: #F59E0B
 - Payment tracking
 - Status updates
 
+## Known Limitations
+
+### Non-EVM Payment Networks (Bitcoin, Solana)
+- **Status**: Backend fix in progress
+- **Impact**: Only EVM networks (Ethereum, BSC, Polygon) are fully functional for payments
+- **Reason**: Backend has hardcoded chain type in `get-payment-address.controller.ts:24`
+- **Workaround**: Frontend displays warning when non-EVM networks are selected
+- **Timeline**: Will be resolved in upcoming backend update
+
+### Network Standards Migration
+The frontend has been updated to use the new `NetworkStandard` enum values from the backend:
+- `EVM` → `ERC_20` (Ethereum, BSC, Polygon, etc.)
+- `SOLANA` → `SPL` (Solana)
+- `BITCOIN` → `BITCOIN` (unchanged)
+
+This ensures full compatibility with the latest backend API.
+
 ## API Integration
 
 The application is designed to work with the Crypto Payment Gateway API. When `USE_MOCK=false`, it connects to the backend API.

@@ -175,6 +175,42 @@ export const MOCK_STORE_CURRENCIES: StoreCurrency[] = [
   },
 ]
 
+// Mock exchange rates for testing
+const MOCK_RATES_50 = MOCK_CURRENCIES.map((currency) => ({
+  currencyId: currency.id,
+  networkId: currency.network,
+  rate: '0.00002500',
+  payerAmount: (50 * 0.00002500).toFixed(18),
+}))
+
+const MOCK_RATES_120 = MOCK_CURRENCIES.map((currency) => ({
+  currencyId: currency.id,
+  networkId: currency.network,
+  rate: '0.00002400',
+  payerAmount: (120 * 0.00002400).toFixed(18),
+}))
+
+const MOCK_RATES_80 = MOCK_CURRENCIES.map((currency) => ({
+  currencyId: currency.id,
+  networkId: currency.network,
+  rate: '0.00002300',
+  payerAmount: (80 * 0.00002300).toFixed(18),
+}))
+
+const MOCK_RATES_25 = MOCK_CURRENCIES.map((currency) => ({
+  currencyId: currency.id,
+  networkId: currency.network,
+  rate: '0.00002600',
+  payerAmount: (25 * 0.00002600).toFixed(18),
+}))
+
+const MOCK_RATES_200 = MOCK_CURRENCIES.map((currency) => ({
+  currencyId: currency.id,
+  networkId: currency.network,
+  rate: '0.00002200',
+  payerAmount: (200 * 0.00002200).toFixed(18),
+}))
+
 // Mock Invoices
 export const MOCK_INVOICES: Invoice[] = [
   {
@@ -191,6 +227,7 @@ export const MOCK_INVOICES: Invoice[] = [
     network: 'ethereum',
     paidAt: '2024-06-01T10:30:00.000Z',
     customerEmail: 'customer1@example.com',
+    rates: MOCK_RATES_50,
     createdAt: '2024-06-01T10:00:00.000Z',
     updatedAt: '2024-06-01T10:30:00.000Z',
   },
@@ -204,6 +241,7 @@ export const MOCK_INVOICES: Invoice[] = [
     status: 'PENDING',
     expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     customerEmail: 'customer2@example.com',
+    rates: MOCK_RATES_120,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -220,6 +258,7 @@ export const MOCK_INVOICES: Invoice[] = [
     paymentAddress: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
     network: 'ethereum',
     paidAt: '2024-05-31T15:45:00.000Z',
+    rates: MOCK_RATES_80,
     createdAt: '2024-05-31T15:00:00.000Z',
     updatedAt: '2024-05-31T15:45:00.000Z',
   },
@@ -235,6 +274,7 @@ export const MOCK_INVOICES: Invoice[] = [
     status: 'CONFIRMING',
     paymentAddress: '5aP8rEFvKBxYQHAqLMGWHe9YQhxv9gLdVZaFYxVaKLzc',
     network: 'solana',
+    rates: MOCK_RATES_25,
     createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -246,6 +286,7 @@ export const MOCK_INVOICES: Invoice[] = [
     amount: 200.0,
     currency: 'USD',
     status: 'EXPIRED',
+    rates: MOCK_RATES_200,
     expiresAt: '2024-05-30T12:00:00.000Z',
     createdAt: '2024-05-30T11:00:00.000Z',
     updatedAt: '2024-05-30T12:00:00.000Z',

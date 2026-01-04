@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { invoiceService, type GenerateAddressData } from '@/services/invoice.service'
 import { storeService } from '@/services/store.service'
-import type { Invoice, StoreCurrency } from '@/models/types'
+import type { Invoice, StoreCurrency, InvoiceRate } from '@/models/types'
 
 type PaymentStep = 'loading' | 'select_currency' | 'awaiting_payment' | 'confirming' | 'success' | 'expired' | 'error'
 
@@ -9,6 +9,7 @@ interface PaymentState {
   invoice: Invoice | null
   storeCurrencies: StoreCurrency[]
   selectedCurrency: StoreCurrency | null
+  selectedRate: InvoiceRate | null  // Exchange rate for selected currency
   step: PaymentStep
   timeRemaining: number
   isLoading: boolean
@@ -31,6 +32,7 @@ const initialState: PaymentState = {
   invoice: null,
   storeCurrencies: [],
   selectedCurrency: null,
+  selectedRate: null,
   step: 'loading',
   timeRemaining: 0,
   isLoading: false,
@@ -99,7 +101,22 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
   },
 
   selectCurrency: async (currency: StoreCurrency): Promise<void> => {
-    set({ selectedCurrency: currency })
+    const { invoice } = get()
+
+    // Find the corresponding rate from invoice.rates[]
+    let selectedRate: InvoiceRate | null = null
+    if (invoice?.rates) {
+      selectedRate = invoice.rates.find(
+        (rate) =>
+          rate.currencyId === currency.currencyId &&
+          rate.networkId === currency.currency.network
+      ) || null
+    }
+
+    set({
+      selectedCurrency: currency,
+      selectedRate
+    })
   },
 
   generateAddress: async (data: GenerateAddressData): Promise<boolean> => {

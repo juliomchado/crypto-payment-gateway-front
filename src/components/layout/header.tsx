@@ -3,6 +3,7 @@
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from './user-menu'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from './sidebar'
 
@@ -29,6 +30,7 @@ export function Header({ title }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <UserMenu />
       </div>
     </header>

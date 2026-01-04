@@ -2,7 +2,7 @@ import { CONFIG } from '@/lib/config'
 import { api } from './api'
 import { MOCK_INVOICES, MOCK_CURRENCIES } from '@/models/mock-data'
 import { generateId } from '@/lib/utils'
-import type { Invoice, InvoiceStatus, ApiResponse, PaginatedResponse } from '@/models/types'
+import type { Invoice, InvoiceStatus, ApiResponse, PaginatedResponse, InvoiceRate } from '@/models/types'
 
 export interface CreateInvoiceData {
   storeId: string
@@ -10,7 +10,13 @@ export interface CreateInvoiceData {
   currency: string
   orderId: string
   customerEmail?: string
-  metadata?: Record<string, unknown>
+  lifespan?: number  // Expiration time in seconds (300-43200, default 3600)
+  title?: string  // Invoice title (3-150 characters)
+  description?: string  // Invoice description (3-500 characters)
+  isPaymentMultiple?: boolean  // Allow multiple payments (default: false)
+  accuracyPaymentPercent?: number  // Payment accuracy margin 0-5% (default: 0)
+  additionalData?: Record<string, unknown>  // Extra metadata
+  fromReferralCode?: string | null  // Referral code
 }
 
 export interface GenerateAddressData {
@@ -93,6 +99,16 @@ class InvoiceService {
   async createInvoice(data: CreateInvoiceData): Promise<Invoice> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
+
+      // Generate mock exchange rates for all available currencies
+      const mockRates: InvoiceRate[] = MOCK_CURRENCIES.map((currency) => ({
+        currencyId: currency.id,
+        networkId: currency.network,
+        rate: (0.00002 + Math.random() * 0.00001).toFixed(8), // Mock exchange rate
+        payerAmount: (data.amount * (0.00002 + Math.random() * 0.00001)).toFixed(18), // 18 decimals
+      }))
+
+      const lifespan = data.lifespan || 3600 // Default 1 hour
       const newInvoice: Invoice = {
         id: generateId(),
         storeId: data.storeId,
@@ -101,8 +117,9 @@ class InvoiceService {
         currency: data.currency,
         status: 'PENDING',
         customerEmail: data.customerEmail,
-        metadata: data.metadata,
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        metadata: data.additionalData,
+        rates: mockRates, // Include exchange rates
+        expiresAt: new Date(Date.now() + lifespan * 1000).toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }

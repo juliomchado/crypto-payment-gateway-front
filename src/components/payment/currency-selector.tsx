@@ -1,6 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { NETWORK_NAMES } from '@/models/mock-data'
 import type { StoreCurrency } from '@/models/types'
 
@@ -15,29 +20,41 @@ export function CurrencySelector({
   selectedCurrency,
   onSelect,
 }: CurrencySelectorProps) {
+  const handleValueChange = (currencyId: string) => {
+    const currency = currencies.find((c) => c.id === currencyId)
+    if (currency) {
+      onSelect(currency)
+    }
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {currencies.map((sc) => (
-        <Card
-          key={sc.id}
-          className={cn(
-            'cursor-pointer transition-all duration-200 hover:shadow-md',
-            selectedCurrency?.id === sc.id &&
-              'border-primary bg-primary/5 shadow-md'
-          )}
-          onClick={() => onSelect(sc)}
-        >
-          <CardContent className="flex flex-col items-center justify-center p-4">
-            <div className="text-2xl font-bold text-primary">
-              {sc.currency.symbol}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {NETWORK_NAMES[sc.currency.network]?.split(' ')[0] ||
-                sc.currency.network}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-2">
+      <Label htmlFor="currency-select">Select Currency</Label>
+      <Select
+        value={selectedCurrency?.id || ''}
+        onValueChange={handleValueChange}
+      >
+        <SelectTrigger id="currency-select" className="w-full">
+          <SelectValue placeholder="Choose a currency" />
+        </SelectTrigger>
+        <SelectContent>
+          {currencies.map((sc) => (
+            <SelectItem key={sc.id} value={sc.id}>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold text-primary">
+                  {sc.currency.symbol}
+                </span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{sc.currency.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {NETWORK_NAMES[sc.currency.network] || sc.currency.network}
+                  </span>
+                </div>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
