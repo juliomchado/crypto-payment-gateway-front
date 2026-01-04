@@ -11,10 +11,13 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 
 interface NavItem {
   label: string
@@ -62,7 +65,14 @@ interface SidebarProps {
 
 export function Sidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { logout } = useAuthViewModel()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   return (
     <aside
@@ -126,7 +136,20 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t p-2">
+      <div className="border-t p-2 space-y-1">
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+            'text-destructive hover:bg-destructive/10 hover:text-destructive',
+            isCollapsed && 'justify-center px-2'
+          )}
+          title={isCollapsed ? 'Log out' : undefined}
+        >
+          <LogOut className="h-5 w-5" />
+          {!isCollapsed && <span>Log out</span>}
+        </button>
+
         <div
           className={cn(
             'flex items-center gap-2 rounded-lg bg-muted/50 p-3',
