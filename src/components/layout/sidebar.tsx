@@ -136,35 +136,40 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t p-2 space-y-1">
-        <button
-          onClick={handleLogout}
-          className={cn(
-            'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-            'text-destructive hover:bg-destructive/10 hover:text-destructive',
-            isCollapsed && 'justify-center px-2'
-          )}
-          title={isCollapsed ? 'Log out' : undefined}
-        >
-          <LogOut className="h-5 w-5" />
-          {!isCollapsed && <span>Log out</span>}
-        </button>
-
+      <div className="border-t p-2">
         <div
           className={cn(
-            'flex items-center gap-2 rounded-lg bg-muted/50 p-3',
+            'relative flex items-center gap-3 rounded-lg border bg-card p-3 transition-all',
+            'hover:shadow-sm',
             isCollapsed && 'justify-center'
           )}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-            <span className="text-xs font-medium text-primary">M</span>
+          {/* Merchant Avatar */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20">
+            <span className="text-sm font-semibold text-primary">M</span>
           </div>
+
+          {/* Merchant Info - Only shown when expanded */}
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">Mock Mode</p>
-              <p className="truncate text-xs text-muted-foreground">Development</p>
+              <p className="truncate text-sm font-medium">Mock Merchant</p>
+              <p className="truncate text-xs text-muted-foreground">Development Mode</p>
             </div>
           )}
+
+          {/* Logout Button - Positioned in corner when expanded, overlay when collapsed */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              'flex items-center justify-center rounded-md transition-all',
+              isCollapsed
+                ? 'absolute inset-0 bg-background/0 hover:bg-destructive/10'
+                : 'h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+            )}
+            title="Log out"
+          >
+            <LogOut className={cn('h-4 w-4', isCollapsed && 'opacity-0 hover:opacity-100')} />
+          </button>
         </div>
       </div>
     </aside>
