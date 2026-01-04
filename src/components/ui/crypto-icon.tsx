@@ -30,7 +30,7 @@ const ICON_URLS: Record<string, string> = {
   'BITCOIN': 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg',
   'LIGHTNING': 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg',
   'LITECOIN': 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg',
-  'XRP': 'https://cryptologos.cc/logos/xrp-xrp-logo.svg',
+
   'DOGECOIN': 'https://cryptologos.cc/logos/dogecoin-doge-logo.svg',
 }
 

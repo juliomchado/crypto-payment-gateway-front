@@ -134,9 +134,8 @@ export function CurrencyConfig({
           {storeCurrencies.map((sc) => (
             <Card
               key={sc.id}
-              className={`cursor-pointer transition-shadow hover:shadow-md ${
-                !sc.isEnabled ? 'opacity-60' : ''
-              }`}
+              className={`cursor-pointer transition-shadow hover:shadow-md ${!sc.isEnabled ? 'opacity-60' : ''
+                }`}
               onClick={() => openEditDialog(sc)}
             >
               <CardHeader className="pb-2">
@@ -178,15 +177,14 @@ export function CurrencyConfig({
                 <Label>Currency</Label>
                 {editingCurrency ? (
                   <Input
-                    value={`${editingCurrency.currency.symbol} (${
-                      NETWORK_NAMES[editingCurrency.currency.network] ||
+                    value={`${editingCurrency.currency.symbol} (${NETWORK_NAMES[editingCurrency.currency.network] ||
                       editingCurrency.currency.network
-                    })`}
+                      })`}
                     disabled
                   />
                 ) : (
                   <Select
-                    value={selectedCurrencyId}
+                    value={selectedCurrencyId || ''}
                     onValueChange={(value) => setValue('currencyId', value)}
                     disabled={isLoading}
                   >

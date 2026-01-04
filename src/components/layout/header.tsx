@@ -5,7 +5,7 @@ import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from './user-menu'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Sidebar } from './sidebar'
 
 interface HeaderProps {
@@ -26,6 +26,10 @@ export function Header({ title }: HeaderProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetDescription className="sr-only">
+              Main navigation menu for the dashboard
+            </SheetDescription>
             <Sidebar onNavigate={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
