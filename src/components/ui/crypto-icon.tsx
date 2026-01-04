@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface CryptoIconProps {
@@ -43,12 +42,12 @@ export function CryptoIcon({ symbol, size = 24, className }: CryptoIconProps) {
       className={cn('relative flex shrink-0 items-center justify-center', className)}
       style={{ width: size, height: size }}
     >
-      <Image
-        src={`https://cryptologos.cc/logos/${iconName === 'bnb' ? 'bnb-bnb' : iconName === 'matic' ? 'polygon-matic' : iconName}-logo.svg?v=029`}
+      <img
+        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/${iconName}.svg`}
         alt={symbol}
         width={size}
         height={size}
-        unoptimized
+        style={{ width: size, height: size }}
         onError={(e) => {
           // Fallback para ícone genérico se não encontrar
           const target = e.target as HTMLImageElement
