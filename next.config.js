@@ -4,12 +4,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'raw.githubusercontent.com',
-        pathname: '/spothq/cryptocurrency-icons/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cryptologos.cc',
+        hostname: 'cdn.jsdelivr.net',
+        pathname: '/npm/cryptocurrency-icons@**',
       },
     ],
   },

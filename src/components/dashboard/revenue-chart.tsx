@@ -45,12 +45,12 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
       <CardHeader>
         <CardTitle>Revenue Overview</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
+      <CardContent className="px-2 sm:px-6">
+        <div className="h-[250px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={formattedData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
@@ -63,13 +63,16 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
                 dataKey="date"
                 axisLine={false}
                 tickLine={false}
-                className="text-xs text-muted-foreground"
+                className="text-[10px] sm:text-xs text-muted-foreground"
+                tick={{ fontSize: 10 }}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(value) => `$${value}`}
-                className="text-xs text-muted-foreground"
+                className="text-[10px] sm:text-xs text-muted-foreground"
+                tick={{ fontSize: 10 }}
+                width={40}
               />
               <Tooltip
                 content={({ active, payload }) => {
