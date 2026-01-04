@@ -225,7 +225,7 @@ export default function InvoiceDetailPage() {
               <Link
                 href={`/pay/${selectedInvoice.id}`}
                 target="_blank"
-                className="w-full"
+                className="mt-2 block w-full"
               >
                 <Button variant="outline" className="w-full">
                   <ExternalLink className="mr-2 h-4 w-4" />
