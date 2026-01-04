@@ -82,7 +82,7 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="mx-4 sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle>Create Wallet</DialogTitle>
           <DialogDescription>
