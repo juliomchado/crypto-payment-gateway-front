@@ -56,17 +56,17 @@ export function PaymentDetails({
   const isExpired = timeRemaining <= 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-center">
-        <div className="rounded-2xl border-2 bg-white p-6 shadow-lg dark:border-border dark:bg-card">
-          <QRCodeSVG value={address} size={240} level="H" />
+        <div className="rounded-xl border-2 bg-white p-4 shadow-md dark:border-border dark:bg-card">
+          <QRCodeSVG value={address} size={200} level="H" />
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
+      <div className="space-y-3">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-muted-foreground">Amount</p>
+            <p className="text-xs font-medium text-muted-foreground">Amount</p>
             {exchangeRate && (
               <Badge variant="outline" className="text-xs">
                 Rate: {exchangeRate}
@@ -74,64 +74,64 @@ export function PaymentDetails({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-lg border-2 bg-muted/30 px-4 py-3.5">
-              <p className="text-xl font-bold tabular-nums">
+            <div className="flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
+              <p className="text-lg font-bold tabular-nums">
                 {amount} {currency.toUpperCase()}
               </p>
             </div>
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11"
+              className="h-10 w-10"
               onClick={() => handleCopy(amount, 'amount')}
             >
               {copiedAmount ? (
-                <Check className="h-5 w-5 text-success" />
+                <Check className="h-4 w-4 text-success" />
               ) : (
-                <Copy className="h-5 w-5" />
+                <Copy className="h-4 w-4" />
               )}
             </Button>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-muted-foreground">Deposit Address</p>
+            <p className="text-xs font-medium text-muted-foreground">Deposit Address</p>
             <Badge variant="secondary" className="text-xs">
               {NETWORK_NAMES[network] || network}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-lg border-2 bg-muted/30 px-4 py-3.5">
-              <p className="break-all font-mono text-sm leading-relaxed">{address}</p>
+            <div className="flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
+              <p className="break-all font-mono text-xs leading-relaxed">{address}</p>
             </div>
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11"
+              className="h-10 w-10"
               onClick={() => handleCopy(address, 'address')}
             >
               {copiedAddress ? (
-                <Check className="h-5 w-5 text-success" />
+                <Check className="h-4 w-4 text-success" />
               ) : (
-                <Copy className="h-5 w-5" />
+                <Copy className="h-4 w-4" />
               )}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className={`rounded-lg border-2 p-4 text-center ${
+      <div className={`rounded-lg border p-3 text-center ${
         isExpired
           ? 'border-destructive/50 bg-destructive/10'
           : isExpiringSoon
             ? 'border-warning/50 bg-warning/10'
             : 'border-primary/50 bg-primary/10'
       }`}>
-        <p className="text-sm font-medium text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground">
           {isExpired ? 'Payment Expired' : 'Time Remaining'}
         </p>
-        <p className={`mt-1 font-mono text-3xl font-bold tabular-nums ${
+        <p className={`mt-0.5 font-mono text-2xl font-bold tabular-nums ${
           isExpired
             ? 'text-destructive'
             : isExpiringSoon
@@ -142,14 +142,14 @@ export function PaymentDetails({
         </p>
       </div>
 
-      <div className="flex items-center justify-center gap-2 pt-2">
-        <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-        <p className="text-sm font-medium text-muted-foreground">
+      <div className="flex items-center justify-center gap-2">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+        <p className="text-xs font-medium text-muted-foreground">
           Waiting for blockchain confirmation...
         </p>
       </div>
 
-      <Button variant="outline" onClick={onBack} className="w-full" size="lg">
+      <Button variant="outline" onClick={onBack} className="w-full">
         Change Payment Method
       </Button>
     </div>
