@@ -44,11 +44,10 @@ export function CryptoIcon({ symbol, size = 24, className }: CryptoIconProps) {
       style={{ width: size, height: size }}
     >
       <Image
-        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/${iconName}.png`}
+        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/${iconName}.svg`}
         alt={symbol}
         width={size}
         height={size}
-        className="rounded-full"
         onError={(e) => {
           // Fallback para ícone genérico se não encontrar
           const target = e.target as HTMLImageElement
