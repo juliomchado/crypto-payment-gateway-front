@@ -57,9 +57,10 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   className?: string
+  onNavigate?: () => void
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -108,6 +109,7 @@ export function Sidebar({ className }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive

@@ -23,6 +23,7 @@ interface PaymentActions {
   updateTimeRemaining: (seconds: number) => void
   setExpired: () => void
   clearError: () => void
+  backToSelection: () => void
   reset: () => void
 }
 
@@ -163,6 +164,15 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
 
   clearError: (): void => {
     set({ error: null })
+  },
+
+  backToSelection: (): void => {
+    const { invoice, storeCurrencies } = get()
+    set({
+      selectedCurrency: null,
+      selectedRate: null,
+      step: 'select_currency',
+    })
   },
 
   reset: (): void => {

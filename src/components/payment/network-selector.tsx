@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { CryptoIcon } from '@/components/ui/crypto-icon'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 
@@ -21,31 +22,31 @@ const NETWORKS: NetworkOption[] = [
     id: 'ethereum',
     name: 'Ethereum',
     description: 'ERC-20',
-    icon: 'Ξ',
+    icon: 'ETH',
   },
   {
     id: 'bsc',
     name: 'BSC',
     description: 'BEP-20',
-    icon: 'B',
+    icon: 'BNB',
   },
   {
     id: 'polygon',
     name: 'Polygon',
     description: 'MATIC',
-    icon: 'P',
+    icon: 'MATIC',
   },
   {
     id: 'solana',
     name: 'Solana',
     description: 'SPL',
-    icon: 'S',
+    icon: 'SOL',
   },
   {
     id: 'bitcoin',
     name: 'Bitcoin',
     description: 'BTC',
-    icon: '₿',
+    icon: 'BTC',
   },
 ]
 
@@ -69,15 +70,28 @@ export function NetworkSelector({
       <Label htmlFor="network-select">Select Network</Label>
       <Select value={selectedNetwork || ''} onValueChange={onSelect}>
         <SelectTrigger id="network-select" className="w-full">
-          <SelectValue placeholder="Choose a network" />
+          <SelectValue placeholder="Choose a network">
+            {selectedNetwork && filteredNetworks.find((n) => n.id === selectedNetwork) && (
+              <div className="flex items-center gap-2">
+                <CryptoIcon
+                  symbol={filteredNetworks.find((n) => n.id === selectedNetwork)!.icon}
+                  size={20}
+                />
+                <span className="font-medium">
+                  {filteredNetworks.find((n) => n.id === selectedNetwork)!.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {filteredNetworks.find((n) => n.id === selectedNetwork)!.description}
+                </span>
+              </div>
+            )}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {filteredNetworks.map((network) => (
             <SelectItem key={network.id} value={network.id}>
-              <div className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {network.icon}
-                </span>
+              <div className="flex items-center gap-2">
+                <CryptoIcon symbol={network.icon} size={20} />
                 <div className="flex flex-col">
                   <span className="font-medium">{network.name}</span>
                   <span className="text-xs text-muted-foreground">
