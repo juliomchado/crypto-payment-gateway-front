@@ -144,7 +144,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="mx-4 sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {createdInvoice ? 'Invoice Created!' : 'Create Invoice'}
@@ -268,7 +268,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount *</Label>
               <Input
@@ -308,7 +308,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="customerEmail">Customer Email</Label>
               <Input

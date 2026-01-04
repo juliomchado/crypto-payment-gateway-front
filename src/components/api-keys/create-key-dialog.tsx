@@ -113,7 +113,7 @@ export function CreateKeyDialog({
   if (createdKey) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent>
+        <DialogContent className="mx-4 sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>API Key Created</DialogTitle>
             <DialogDescription>
@@ -166,7 +166,7 @@ export function CreateKeyDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="mx-4 sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create API Key</DialogTitle>
           <DialogDescription>
