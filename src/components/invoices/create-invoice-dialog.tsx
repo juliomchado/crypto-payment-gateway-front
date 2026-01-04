@@ -144,7 +144,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="mx-4 sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {createdInvoice ? 'Invoice Created!' : 'Create Invoice'}
