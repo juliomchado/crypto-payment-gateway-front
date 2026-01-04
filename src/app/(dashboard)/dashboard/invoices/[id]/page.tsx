@@ -83,9 +83,9 @@ export default function InvoiceDetailPage() {
           <CardHeader>
             <CardTitle>Invoice Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Invoice ID</span>
+              <span className="text-sm text-muted-foreground">Invoice ID</span>
               <div className="flex items-center gap-2">
                 <code className="rounded bg-muted px-2 py-1 text-xs">
                   {selectedInvoice.id}
@@ -102,23 +102,23 @@ export default function InvoiceDetailPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Order ID</span>
-              <span className="font-medium">{selectedInvoice.orderId}</span>
+              <span className="text-sm text-muted-foreground">Order ID</span>
+              <span className="text-sm font-medium">{selectedInvoice.orderId}</span>
             </div>
 
             <Separator />
 
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Amount</span>
-              <span className="text-xl font-bold">
+              <span className="text-sm text-muted-foreground">Amount</span>
+              <span className="text-lg font-bold">
                 {formatCurrency(selectedInvoice.amount, selectedInvoice.currency)}
               </span>
             </div>
 
             {selectedInvoice.cryptoCurrency && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Crypto Amount</span>
-                <span className="font-medium">
+                <span className="text-sm text-muted-foreground">Crypto Amount</span>
+                <span className="text-sm font-medium">
                   {selectedInvoice.cryptoAmount} {selectedInvoice.cryptoCurrency}
                 </span>
               </div>
@@ -127,21 +127,21 @@ export default function InvoiceDetailPage() {
             <Separator />
 
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Store</span>
-              <span className="font-medium">{selectedInvoice.store?.name || 'N/A'}</span>
+              <span className="text-sm text-muted-foreground">Store</span>
+              <span className="text-sm font-medium">{selectedInvoice.store?.name || 'N/A'}</span>
             </div>
 
             {selectedInvoice.customerEmail && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Customer Email</span>
-                <span className="font-medium">{selectedInvoice.customerEmail}</span>
+                <span className="text-sm text-muted-foreground">Customer Email</span>
+                <span className="text-sm font-medium">{selectedInvoice.customerEmail}</span>
               </div>
             )}
 
             {selectedInvoice.network && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Network</span>
-                <span className="font-medium">
+                <span className="text-sm text-muted-foreground">Network</span>
+                <span className="text-sm font-medium">
                   {NETWORK_NAMES[selectedInvoice.network] || selectedInvoice.network}
                 </span>
               </div>
@@ -153,9 +153,9 @@ export default function InvoiceDetailPage() {
           <CardHeader>
             <CardTitle>Payment Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Status</span>
+              <span className="text-sm text-muted-foreground">Status</span>
               <StatusBadge status={selectedInvoice.status} />
             </div>
 
@@ -187,8 +187,8 @@ export default function InvoiceDetailPage() {
 
             {selectedInvoice.expiresAt && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Expires At</span>
-                <span className="font-medium">
+                <span className="text-sm text-muted-foreground">Expires At</span>
+                <span className="text-sm font-medium">
                   {formatDateTime(selectedInvoice.expiresAt)}
                 </span>
               </div>
@@ -196,16 +196,16 @@ export default function InvoiceDetailPage() {
 
             {selectedInvoice.paidAt && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Paid At</span>
-                <span className="font-medium">
+                <span className="text-sm text-muted-foreground">Paid At</span>
+                <span className="text-sm font-medium">
                   {formatDateTime(selectedInvoice.paidAt)}
                 </span>
               </div>
             )}
 
             {selectedInvoice.status === 'AWAITING_PAYMENT' && (
-              <div className="rounded-lg bg-warning/10 p-4 text-sm text-warning">
-                <p className="font-medium">Awaiting Payment</p>
+              <div className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
+                <p className="text-sm font-medium">Awaiting Payment</p>
                 <p className="mt-1 text-xs">
                   Waiting for customer to send payment to the address above.
                 </p>
@@ -213,8 +213,8 @@ export default function InvoiceDetailPage() {
             )}
 
             {selectedInvoice.status === 'PAID' && (
-              <div className="rounded-lg bg-success/10 p-4 text-sm text-success">
-                <p className="font-medium">Payment Confirmed</p>
+              <div className="rounded-lg bg-success/10 p-3 text-sm text-success">
+                <p className="text-sm font-medium">Payment Confirmed</p>
                 <p className="mt-1 text-xs">
                   This invoice has been paid successfully.
                 </p>
@@ -222,16 +222,19 @@ export default function InvoiceDetailPage() {
             )}
 
             {selectedInvoice.paymentAddress && (
-              <Link
-                href={`/pay/${selectedInvoice.id}`}
-                target="_blank"
-                className="w-full"
-              >
-                <Button variant="outline" className="w-full">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Payment Page
-                </Button>
-              </Link>
+              <>
+                <Separator />
+                <Link
+                  href={`/pay/${selectedInvoice.id}`}
+                  target="_blank"
+                  className="w-full"
+                >
+                  <Button variant="outline" className="w-full">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Payment Page
+                  </Button>
+                </Link>
+              </>
             )}
           </CardContent>
         </Card>
