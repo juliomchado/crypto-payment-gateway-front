@@ -58,8 +58,8 @@ export function PaymentDetails({
   return (
     <div className="space-y-4">
       <div className="flex justify-center">
-        <div className="rounded-xl border-2 bg-white p-4 shadow-md dark:border-border dark:bg-card">
-          <QRCodeSVG value={address} size={200} level="H" />
+        <div className="rounded-xl border-2 bg-white p-3 shadow-md dark:border-border dark:bg-card sm:p-4">
+          <QRCodeSVG value={address} size={200} level="H" className="h-auto w-full max-w-[200px]" />
         </div>
       </div>
 
@@ -74,15 +74,15 @@ export function PaymentDetails({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
-              <p className="text-lg font-bold tabular-nums">
+            <div className="flex-1 rounded-lg border bg-muted/30 px-3 py-2 sm:py-2.5">
+              <p className="text-base font-bold tabular-nums sm:text-lg">
                 {amount} {currency.toUpperCase()}
               </p>
             </div>
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10"
+              className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
               onClick={() => handleCopy(amount, 'amount')}
             >
               {copiedAmount ? (
@@ -102,13 +102,13 @@ export function PaymentDetails({
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
-              <p className="break-all font-mono text-xs leading-relaxed">{address}</p>
+            <div className="flex-1 overflow-hidden rounded-lg border bg-muted/30 px-2.5 py-2 sm:px-3 sm:py-2.5">
+              <p className="break-all font-mono text-[10px] leading-relaxed sm:text-xs">{address}</p>
             </div>
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10"
+              className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
               onClick={() => handleCopy(address, 'address')}
             >
               {copiedAddress ? (
@@ -121,7 +121,7 @@ export function PaymentDetails({
         </div>
       </div>
 
-      <div className={`rounded-lg border p-3 text-center ${
+      <div className={`rounded-lg border p-2.5 text-center sm:p-3 ${
         isExpired
           ? 'border-destructive/50 bg-destructive/10'
           : isExpiringSoon
@@ -131,7 +131,7 @@ export function PaymentDetails({
         <p className="text-xs font-medium text-muted-foreground">
           {isExpired ? 'Payment Expired' : 'Time Remaining'}
         </p>
-        <p className={`mt-0.5 font-mono text-2xl font-bold tabular-nums ${
+        <p className={`mt-0.5 font-mono text-xl font-bold tabular-nums sm:text-2xl ${
           isExpired
             ? 'text-destructive'
             : isExpiringSoon

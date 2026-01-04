@@ -104,35 +104,35 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="w-full max-w-lg space-y-4">
+    <div className="w-full max-w-lg space-y-3 px-4 sm:space-y-4 sm:px-0">
       <div className="text-center">
-        <div className="mb-2 flex items-center justify-center">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-base font-bold text-primary-foreground">C</span>
+        <div className="mb-1.5 flex items-center justify-center sm:mb-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary sm:h-9 sm:w-9">
+            <span className="text-sm font-bold text-primary-foreground sm:text-base">C</span>
           </div>
         </div>
-        <h1 className="text-lg font-bold">{invoice.store?.name || 'Store'}</h1>
+        <h1 className="text-base font-bold sm:text-lg">{invoice.store?.name || 'Store'}</h1>
       </div>
 
       <Card>
-        <CardHeader className="pb-4 text-center">
+        <CardHeader className="pb-3 text-center sm:pb-4">
           <div className="space-y-0.5">
             <p className="text-xs text-muted-foreground">Order #{invoice.orderId}</p>
-            <p className="text-2xl font-bold">
+            <p className="text-xl font-bold sm:text-2xl">
               {formatCurrency(invoice.amount, invoice.currency)}
             </p>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           {step === 'select_currency' && (
             <>
               <div className="text-center">
-                <h2 className="text-base font-semibold">Select Payment Method</h2>
+                <h2 className="text-sm font-semibold sm:text-base">Select Payment Method</h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Choose network and currency to complete your payment
                 </p>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 <NetworkSelector
                   selectedNetwork={selectedNetwork}
                   availableNetworks={availableNetworks}
