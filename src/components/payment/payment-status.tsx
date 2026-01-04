@@ -36,7 +36,7 @@ export function PaymentStatus({
     expired: {
       icon: <AlertCircle className="h-16 w-16 text-warning" />,
       title: 'Payment Expired',
-      description: 'This payment request has expired. Please try again.',
+      description: 'This payment request has expired. Please contact the merchant to request a new payment link.',
       color: 'text-warning',
     },
     error: {
