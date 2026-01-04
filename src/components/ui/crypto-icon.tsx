@@ -7,7 +7,7 @@ interface CryptoIconProps {
   className?: string
 }
 
-// Mapeamento de símbolos para nomes corretos do cryptocurrency-icons
+// Mapeamento de símbolos para nomes corretos
 const SYMBOL_MAP: Record<string, string> = {
   // Cryptocurrencies
   'BTC': 'btc',
@@ -44,10 +44,11 @@ export function CryptoIcon({ symbol, size = 24, className }: CryptoIconProps) {
       style={{ width: size, height: size }}
     >
       <Image
-        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/${iconName}.svg`}
+        src={`https://cryptologos.cc/logos/${iconName === 'bnb' ? 'bnb-bnb' : iconName === 'matic' ? 'polygon-matic' : iconName}-logo.svg?v=029`}
         alt={symbol}
         width={size}
         height={size}
+        unoptimized
         onError={(e) => {
           // Fallback para ícone genérico se não encontrar
           const target = e.target as HTMLImageElement
