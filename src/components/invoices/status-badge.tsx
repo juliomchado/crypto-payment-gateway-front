@@ -13,6 +13,7 @@ const statusConfig: Record<
   DETECTING: { label: 'Detecting', variant: 'warning' },
   CONFIRMING: { label: 'Confirming', variant: 'warning' },
   CONFIRMED: { label: 'Confirmed', variant: 'success' },
+  COMPLETED: { label: 'Completed', variant: 'success' },
   OVERPAID: { label: 'Overpaid', variant: 'warning' },
   UNDERPAID: { label: 'Underpaid', variant: 'warning' },
   EXPIRED: { label: 'Expired', variant: 'destructive' },

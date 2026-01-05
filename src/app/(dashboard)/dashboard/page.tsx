@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Pass store ID only if a specific store is selected (not "All Stores")
-    const storeIdFilter = !isAllStores ? activeStoreId : undefined
+    const storeIdFilter = !isAllStores && activeStoreId ? activeStoreId : undefined
     fetchDashboardData(storeIdFilter)
   }, [fetchDashboardData, activeStoreId, isAllStores])
 

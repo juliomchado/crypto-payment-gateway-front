@@ -47,7 +47,7 @@ class DashboardService {
         // Reduce revenue by a factor to simulate single store
         return revenueData.map(point => ({
           ...point,
-          revenue: point.revenue * 0.4, // 40% of total (simulating one of multiple stores)
+          amount: point.amount * 0.4, // 40% of total (simulating one of multiple stores)
         }))
       }
 
