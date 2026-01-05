@@ -500,3 +500,43 @@ export function mapLegacyStatus(status: string): PaymentStatus {
   }
   return (mapping[status] || status) as PaymentStatus
 }
+
+// Webhook Events
+export type WebhookEventType =
+  | 'payment.created'
+  | 'payment.detecting'
+  | 'payment.confirming'
+  | 'payment.confirmed'
+  | 'payment.overpaid'
+  | 'payment.underpaid'
+  | 'payment.expired'
+  | 'payment.failed'
+  | 'payment.refunding'
+  | 'payment.refunded'
+  | 'payment.cancelled'
+
+export type WebhookEventStatus = 'PENDING' | 'DELIVERED' | 'FAILED'
+
+export interface WebhookEvent {
+  id: string
+  storeId: string
+  invoiceId: string
+  event: WebhookEventType
+  url: string
+  payload: Record<string, unknown>
+  response?: {
+    status: number
+    body: string
+  }
+  attempts: number
+  maxAttempts: number
+  status: WebhookEventStatus
+  nextRetryAt?: string
+  deliveredAt?: string
+  failedAt?: string
+  errorMessage?: string
+  createdAt: string
+  updatedAt: string
+  invoice?: Invoice
+  store?: Store
+}

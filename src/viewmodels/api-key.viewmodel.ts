@@ -18,6 +18,7 @@ interface ApiKeyActions {
   fetchAllApiKeys: () => Promise<void>
   createApiKey: (data: CreateApiKeyData) => Promise<CreateApiKeyResponse | null>
   revokeApiKey: (storeId: string, keyId: string) => Promise<boolean>
+  rotateApiKey: (storeId: string, keyId: string) => Promise<CreateApiKeyResponse | null>
   clearNewlyCreatedKey: () => void
   clearError: () => void
 }
@@ -84,6 +85,25 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to revoke API key', isLoading: false })
       return false
+    }
+  },
+
+  rotateApiKey: async (storeId: string, keyId: string): Promise<CreateApiKeyResponse | null> => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await apiKeyService.rotateApiKey(storeId, keyId)
+      set((state) => ({
+        apiKeys: state.apiKeys.map((key) =>
+          key.id === keyId ? { ...key, status: 'REVOKED' as const } : key
+        ).concat(response.apiKey),
+        newlyCreatedKey: response,
+        isLoading: false,
+      }))
+      return response
+    } catch (err) {
+      const error = err as { message?: string }
+      set({ error: error.message || 'Failed to rotate API key', isLoading: false })
+      return null
     }
   },
 

@@ -26,11 +26,12 @@ export default function ApiKeysPage() {
   const searchParams = useSearchParams()
   const storeIdParam = searchParams.get('store')
   const { toast } = useToast()
-  const { apiKeys, isLoading, fetchAllApiKeys, createApiKey, revokeApiKey } =
+  const { apiKeys, isLoading, newlyCreatedKey, fetchAllApiKeys, createApiKey, revokeApiKey, rotateApiKey, clearNewlyCreatedKey } =
     useApiKeyViewModel()
   const { stores, fetchStores } = useStoreViewModel()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [revokingKey, setRevokingKey] = useState<ApiKey | null>(null)
+  const [rotatingKey, setRotatingKey] = useState<ApiKey | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -73,6 +74,24 @@ export default function ApiKeysPage() {
     setRevokingKey(null)
   }
 
+  const handleRotateKey = async () => {
+    if (!rotatingKey) return
+
+    setIsSubmitting(true)
+    const result = await rotateApiKey(rotatingKey.storeId, rotatingKey.id)
+    setIsSubmitting(false)
+    setRotatingKey(null)
+
+    if (result) {
+      toast({
+        title: 'API Key rotated',
+        description: 'Your new API key has been generated. Copy it now!',
+      })
+      // The CreateKeyDialog will automatically show the new key via newlyCreatedKey
+      setIsCreateDialogOpen(true)
+    }
+  }
+
   const handleCopy = async (key: string) => {
     try {
       await copyToClipboard(key)
@@ -112,6 +131,7 @@ export default function ApiKeysPage() {
         apiKeys={filteredKeys}
         isLoading={isLoading}
         onRevoke={setRevokingKey}
+        onRotate={setRotatingKey}
         onCopy={handleCopy}
       />
 
@@ -141,6 +161,28 @@ export default function ApiKeysPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!rotatingKey} onOpenChange={() => setRotatingKey(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rotate API Key</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to rotate &quot;{rotatingKey?.name}&quot;? This will
+              generate a new key and revoke the old one. Applications using the old key
+              will stop working until updated with the new key.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRotateKey}
+              disabled={isSubmitting}
+            >
+              Rotate Key
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

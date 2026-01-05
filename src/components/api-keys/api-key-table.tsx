@@ -1,6 +1,6 @@
 'use client'
 
-import { MoreHorizontal, Trash2, Copy, Eye, EyeOff } from 'lucide-react'
+import { MoreHorizontal, Trash2, Copy, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -26,10 +26,11 @@ interface ApiKeyTableProps {
   apiKeys: ApiKey[]
   isLoading?: boolean
   onRevoke?: (key: ApiKey) => void
+  onRotate?: (key: ApiKey) => void
   onCopy?: (key: string) => void
 }
 
-export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onCopy }: ApiKeyTableProps) {
+export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onRotate, onCopy }: ApiKeyTableProps) {
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
 
   const toggleKeyVisibility = (keyId: string) => {
@@ -128,13 +129,19 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onCopy }: ApiKeyTabl
                         Copy Key Hint
                       </DropdownMenuItem>
                       {apiKey.status === 'ACTIVE' && (
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onRevoke?.(apiKey)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Revoke
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem onClick={() => onRotate?.(apiKey)}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Rotate Key
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onRevoke?.(apiKey)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Revoke
+                          </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
