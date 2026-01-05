@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 import { useToast } from '@/hooks/use-toast'
+import { CONFIG } from '@/lib/config'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -33,10 +34,15 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: 'demo@cryptogateway.com',
-      password: 'password',
-    },
+    defaultValues: CONFIG.USE_MOCK
+      ? {
+          email: 'merchant@cryptogateway.com',
+          password: 'password',
+        }
+      : {
+          email: '',
+          password: '',
+        },
   })
 
   const onSubmit = async (data: LoginFormData) => {
@@ -112,10 +118,25 @@ export function LoginForm() {
             )}
           </div>
 
-          <div className="rounded-lg bg-muted/50 p-3 text-sm">
-            <p className="font-medium">Demo credentials:</p>
-            <p className="text-muted-foreground">demo@cryptogateway.com / password</p>
-          </div>
+          {CONFIG.USE_MOCK && (
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <p className="mb-3 text-sm font-semibold">Mock Accounts (Dev Mode):</p>
+              <div className="space-y-2 text-sm">
+                <div className="rounded-md bg-background/50 p-2">
+                  <p className="font-medium text-foreground">👨‍💼 Merchant</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    merchant@cryptogateway.com / password
+                  </p>
+                </div>
+                <div className="rounded-md bg-background/50 p-2">
+                  <p className="font-medium text-foreground">🛡️ Admin</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    admin@cryptogateway.com / admin123
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
