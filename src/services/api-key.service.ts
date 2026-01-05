@@ -95,6 +95,55 @@ class ApiKeyService {
     return response.data
   }
 
+  async rotateApiKey(storeId: string, keyId: string): Promise<CreateApiKeyResponse> {
+    if (CONFIG.USE_MOCK) {
+      await this.simulateDelay()
+
+      const index = this.mockApiKeys.findIndex((key) => key.id === keyId)
+      if (index === -1) {
+        throw { message: 'API Key not found', statusCode: 404 }
+      }
+
+      const oldKey = this.mockApiKeys[index]
+
+      // Revoke the old key
+      this.mockApiKeys[index] = {
+        ...oldKey,
+        status: 'REVOKED' as ApiKeyStatus,
+        updatedAt: new Date().toISOString(),
+      }
+
+      // Generate a new API key
+      const fullKey =
+        'pk_live_' +
+        Array.from({ length: 32 }, () =>
+          'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[
+            Math.floor(Math.random() * 62)
+          ]
+        ).join('')
+
+      const newKey: ApiKey = {
+        id: generateId(),
+        storeId: oldKey.storeId,
+        name: oldKey.name,
+        type: oldKey.type,
+        keyHint: fullKey.slice(-4),
+        status: 'ACTIVE',
+        userId: oldKey.userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      this.mockApiKeys.push(newKey)
+
+      return { apiKey: newKey, key: fullKey }
+    }
+
+    const response = await api.post<ApiResponse<CreateApiKeyResponse>>(
+      `/store/${storeId}/api-keys/${keyId}/rotate`
+    )
+    return response.data
+  }
+
   private simulateDelay(ms: number = 300): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }

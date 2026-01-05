@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, Copy, CheckCircle } from 'lucide-react'
+import { useApiKeyViewModel } from '@/viewmodels/api-key.viewmodel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -48,8 +49,16 @@ export function CreateKeyDialog({
   stores,
   isLoading,
 }: CreateKeyDialogProps) {
+  const { newlyCreatedKey, clearNewlyCreatedKey } = useApiKeyViewModel()
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+
+  // Sync with viewmodel's newlyCreatedKey (for rotate flow)
+  useEffect(() => {
+    if (newlyCreatedKey?.key && open) {
+      setCreatedKey(newlyCreatedKey.key)
+    }
+  }, [newlyCreatedKey, open])
 
   const {
     register,
@@ -87,6 +96,7 @@ export function CreateKeyDialog({
     reset()
     setCreatedKey(null)
     setCopied(false)
+    clearNewlyCreatedKey()
     onOpenChange(false)
   }
 
