@@ -13,17 +13,22 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { isAuthenticated, isLoading, checkAuth } = useAuthViewModel()
+  const { user, isAuthenticated, isLoading, checkAuth } = useAuthViewModel()
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login')
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login')
+      } else if (user && user.role === 'USER') {
+        // USER role doesn't have dashboard access (they only make payments)
+        router.push('/')
+      }
     }
-  }, [isLoading, isAuthenticated, router])
+  }, [isLoading, isAuthenticated, user, router])
 
   if (isLoading) {
     return (
