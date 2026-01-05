@@ -46,7 +46,7 @@ export default function StoreCurrenciesPage() {
     storeCurrencies,
     availableCurrencies,
     isLoading,
-    getStore,
+    fetchStore,
     fetchStoreCurrencies,
     fetchAvailableCurrencies,
     addStoreCurrency,
@@ -55,13 +55,15 @@ export default function StoreCurrenciesPage() {
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedCurrencyId, setSelectedCurrencyId] = useState<string>('')
+  const [minAmount, setMinAmount] = useState<string>('0.01')
+  const [maxAmount, setMaxAmount] = useState<string>('10000')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    getStore(storeId)
+    fetchStore(storeId)
     fetchStoreCurrencies(storeId)
     fetchAvailableCurrencies()
-  }, [storeId, getStore, fetchStoreCurrencies, fetchAvailableCurrencies])
+  }, [storeId, fetchStore, fetchStoreCurrencies, fetchAvailableCurrencies])
 
   // Filter out currencies already added to the store
   const availableToAdd = availableCurrencies.filter(
@@ -72,33 +74,35 @@ export default function StoreCurrenciesPage() {
     if (!selectedCurrencyId) return
 
     setIsSubmitting(true)
-    try {
-      await addStoreCurrency(storeId, { currencyId: selectedCurrencyId })
+    const success = await addStoreCurrency(storeId, selectedCurrencyId, minAmount, maxAmount)
+    setIsSubmitting(false)
+
+    if (success) {
       toast({
         title: 'Currency added',
         description: 'The currency has been added to your store.',
       })
       setIsAddDialogOpen(false)
       setSelectedCurrencyId('')
-    } catch (error) {
+      setMinAmount('0.01')
+      setMaxAmount('10000')
+    } else {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'Failed to add currency. Please try again.',
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
   const handleRemoveCurrency = async (currencyId: string) => {
-    try {
-      await removeStoreCurrency(storeId, currencyId)
+    const success = await removeStoreCurrency(storeId, currencyId)
+    if (success) {
       toast({
         title: 'Currency removed',
         description: 'The currency has been removed from your store.',
       })
-    } catch (error) {
+    } else {
       toast({
         variant: 'destructive',
         title: 'Error',

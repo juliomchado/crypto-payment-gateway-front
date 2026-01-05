@@ -12,38 +12,38 @@ import {
 } from '@/components/ui/select'
 import { useWebhookViewModel } from '@/viewmodels/webhook.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
+import { useActiveStore } from '@/contexts/active-store.context'
 import { useToast } from '@/hooks/use-toast'
 import type { WebhookEvent, WebhookEventStatus } from '@/models/types'
 
 export default function WebhooksPage() {
   const searchParams = useSearchParams()
   const storeIdParam = searchParams.get('store')
+  const { activeStoreId, isAllStores } = useActiveStore()
   const { toast } = useToast()
   const { webhookEvents, isLoading, fetchWebhookEvents, retryWebhookEvent } =
     useWebhookViewModel()
   const { stores, fetchStores } = useStoreViewModel()
-  const [selectedStoreId, setSelectedStoreId] = useState<string>(storeIdParam || '')
   const [statusFilter, setStatusFilter] = useState<WebhookEventStatus | 'ALL'>('ALL')
+
+  // Use store from URL param, or header selector, or first available store
+  const effectiveStoreId = storeIdParam || (!isAllStores ? activeStoreId : stores[0]?.id)
 
   useEffect(() => {
     fetchStores()
   }, [fetchStores])
 
   useEffect(() => {
-    if (selectedStoreId) {
+    if (effectiveStoreId) {
       const query = statusFilter !== 'ALL' ? { status: statusFilter } : undefined
-      fetchWebhookEvents(selectedStoreId, query)
+      fetchWebhookEvents(effectiveStoreId, query)
     }
-  }, [selectedStoreId, statusFilter, fetchWebhookEvents])
-
-  useEffect(() => {
-    if (storeIdParam && storeIdParam !== selectedStoreId) {
-      setSelectedStoreId(storeIdParam)
-    }
-  }, [storeIdParam, selectedStoreId])
+  }, [effectiveStoreId, statusFilter, fetchWebhookEvents])
 
   const handleRetry = async (event: WebhookEvent) => {
-    const success = await retryWebhookEvent(selectedStoreId, event.id)
+    if (!effectiveStoreId) return
+
+    const success = await retryWebhookEvent(effectiveStoreId, event.id)
     if (success) {
       toast({
         title: 'Webhook retried',
@@ -67,21 +67,12 @@ export default function WebhooksPage() {
         </p>
       </div>
 
-      <div className="flex gap-4">
-        <div className="w-64">
-          <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a store" />
-            </SelectTrigger>
-            <SelectContent>
-              {stores.map((store) => (
-                <SelectItem key={store.id} value={store.id}>
-                  {store.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="flex items-center gap-4">
+        {isAllStores && (
+          <p className="text-sm text-muted-foreground">
+            Select a specific store in the header to view webhook events.
+          </p>
+        )}
 
         <div className="w-48">
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as WebhookEventStatus | 'ALL')}>
@@ -98,10 +89,10 @@ export default function WebhooksPage() {
         </div>
       </div>
 
-      {selectedStoreId ? (
+      {effectiveStoreId ? (
         <WebhookEventTable
           webhookEvents={webhookEvents}
-          storeId={selectedStoreId}
+          storeId={effectiveStoreId}
           isLoading={isLoading}
           onRetry={handleRetry}
         />

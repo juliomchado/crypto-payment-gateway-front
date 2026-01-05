@@ -178,6 +178,12 @@ export default function PaymentPage() {
             <p className="text-xl font-bold sm:text-2xl">
               {formatCurrency(invoice.amount, invoice.currency)}
             </p>
+            {invoice.title && (
+              <p className="mt-1.5 text-sm font-medium text-foreground">{invoice.title}</p>
+            )}
+            {invoice.description && (
+              <p className="mt-1 text-xs text-muted-foreground">{invoice.description}</p>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4">

@@ -21,10 +21,12 @@ import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
 import { useToast } from '@/hooks/use-toast'
 import { copyToClipboard } from '@/lib/utils'
 import type { ApiKey, ApiKeyType } from '@/models/types'
+import { useActiveStore } from '@/contexts/active-store.context'
 
 export default function ApiKeysPage() {
   const searchParams = useSearchParams()
   const storeIdParam = searchParams.get('store')
+  const { activeStoreId, isAllStores } = useActiveStore()
   const { toast } = useToast()
   const { apiKeys, isLoading, newlyCreatedKey, fetchAllApiKeys, createApiKey, revokeApiKey, rotateApiKey, clearNewlyCreatedKey } =
     useApiKeyViewModel()
@@ -108,8 +110,10 @@ export default function ApiKeysPage() {
     }
   }
 
-  const filteredKeys = storeIdParam
-    ? apiKeys.filter((key) => key.storeId === storeIdParam)
+  // Filter keys: prioritize URL param, then activeStoreId (unless "All Stores"), then show all
+  const filterStoreId = storeIdParam || (!isAllStores ? activeStoreId : null)
+  const filteredKeys = filterStoreId
+    ? apiKeys.filter((key) => key.storeId === filterStoreId)
     : apiKeys
 
   return (

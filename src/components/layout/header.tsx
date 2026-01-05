@@ -7,6 +7,7 @@ import { UserMenu } from './user-menu'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Sidebar } from './sidebar'
+import { StoreSelector } from './store-selector'
 
 interface HeaderProps {
   title?: string
@@ -37,6 +38,7 @@ export function Header({ title }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        <StoreSelector />
         <ThemeToggle />
         <UserMenu />
       </div>
