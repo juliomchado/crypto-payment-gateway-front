@@ -17,7 +17,8 @@
       "Bash(npm install:*)",
       "Bash(xargs cat:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(grep:*)"
     ]
   }
 }

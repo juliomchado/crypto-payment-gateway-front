@@ -72,7 +72,10 @@ export function InvoiceTable({ invoices, isLoading }: InvoiceTableProps) {
         </TableHeader>
         <TableBody>
           {invoices.map((invoice) => {
-            const status = statusConfig[invoice.paymentStatus]
+            const status = statusConfig[invoice.paymentStatus] || {
+              label: invoice.paymentStatus || 'Unknown',
+              variant: 'secondary' as const,
+            }
             return (
               <TableRow key={invoice.id}>
                 <TableCell className="font-medium">{invoice.orderId}</TableCell>
