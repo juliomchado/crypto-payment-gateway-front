@@ -94,7 +94,7 @@ class InvoiceService {
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
-    return api.get<PaginatedResponse<Invoice>>(`/invoices?${params.toString()}`)
+    return api.get<PaginatedResponse<Invoice>>(`/v1/invoice?${params.toString()}`)
   }
 
   async getInvoice(id: string): Promise<Invoice> {
@@ -106,7 +106,7 @@ class InvoiceService {
       }
       return invoice
     }
-    const response = await api.get<ApiResponse<Invoice>>(`/invoices/${id}`)
+    const response = await api.get<ApiResponse<Invoice>>(`/v1/invoice/${id}`)
     return response.data
   }
 

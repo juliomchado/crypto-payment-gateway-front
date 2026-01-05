@@ -138,7 +138,7 @@ class ApiKeyService {
       return { apiKey: newKey, key: fullKey }
     }
 
-    const response = await api.post<ApiResponse<CreateApiKeyResponse>>(
+    const response = await api.patch<ApiResponse<CreateApiKeyResponse>>(
       `/store/${storeId}/api-keys/${keyId}/rotate`
     )
     return response.data
