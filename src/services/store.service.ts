@@ -268,6 +268,22 @@ class StoreService {
   }
 
   // Legacy method for backward compatibility
+  async removeStoreCurrency(storeId: string, currencyId: string): Promise<void> {
+    if (CONFIG.USE_MOCK) {
+      await this.simulateDelay()
+      const index = this.mockStoreCurrencies.findIndex(
+        (sc) => sc.storeId === storeId && sc.currencyId === currencyId
+      )
+      if (index === -1) {
+        throw { message: 'Store currency not found', statusCode: 404 }
+      }
+      this.mockStoreCurrencies.splice(index, 1)
+      return
+    }
+    await api.delete(`/stores/${storeId}/currencies/${currencyId}`)
+  }
+
+  // Legacy method for backward compatibility
   async configureCurrency(storeId: string, data: ConfigureCurrencyData): Promise<StoreCurrency> {
     const existingCurrency = this.mockStoreCurrencies.find(
       (sc) => sc.storeId === storeId && sc.currencyId === data.currencyId

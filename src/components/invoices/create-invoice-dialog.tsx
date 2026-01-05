@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useInvoiceViewModel } from '@/viewmodels/invoice.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
+import { useActiveStore, ALL_STORES_VALUE } from '@/contexts/active-store.context'
 
 const createInvoiceSchema = z.object({
   storeId: z.string().min(1, 'Store is required'),
@@ -33,9 +34,12 @@ const createInvoiceSchema = z.object({
   amount: z.string().min(1, 'Amount is required')
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Must be a valid positive number'),
   currency: z.string().min(1, 'Currency is required'),
-  title: z.string().min(3, 'Title must be at least 3 characters').max(150, 'Title must be at most 150 characters').optional().or(z.literal('')),
-  description: z.string().min(3, 'Description must be at least 3 characters').max(500, 'Description must be at most 500 characters').optional().or(z.literal('')),
-  customerEmail: z.string().email('Must be a valid email').optional().or(z.literal('')),
+  title: z.string().optional()
+    .refine((val) => !val || (val.length >= 3 && val.length <= 150), 'Title must be between 3-150 characters'),
+  description: z.string().optional()
+    .refine((val) => !val || (val.length >= 3 && val.length <= 500), 'Description must be between 3-500 characters'),
+  customerEmail: z.string().optional()
+    .refine((val) => !val || z.string().email().safeParse(val).success, 'Must be a valid email'),
   lifespan: z.string().min(1, 'Expiration time is required'),
   isPaymentMultiple: z.boolean().optional(),
   accuracyPaymentPercent: z.string().optional(),
@@ -52,6 +56,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
   const { toast } = useToast()
   const { createInvoice } = useInvoiceViewModel()
   const { stores } = useStoreViewModel()
+  const { activeStoreId, isAllStores } = useActiveStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [createdInvoice, setCreatedInvoice] = useState<{ id: string; paymentUrl: string } | null>(null)
   const [copied, setCopied] = useState(false)
@@ -67,6 +72,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
   } = useForm<CreateInvoiceFormData>({
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
+      storeId: '',
       currency: 'USD',
       lifespan: '3600', // 1 hour default
       isPaymentMultiple: false,
@@ -75,6 +81,13 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
   })
 
   const selectedStoreId = watch('storeId')
+
+  // Auto-populate store when activeStoreId changes or dialog opens (but not if "All Stores")
+  useEffect(() => {
+    if (activeStoreId && !isAllStores && open) {
+      setValue('storeId', activeStoreId)
+    }
+  }, [activeStoreId, isAllStores, open, setValue])
 
   const handleCopyLink = async () => {
     if (!createdInvoice) return
@@ -232,7 +245,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   <Select
                     value={selectedStoreId || ''}
                     onValueChange={(value) => setValue('storeId', value)}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || (!!activeStoreId && !isAllStores)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a store" />
@@ -248,6 +261,15 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   {errors.storeId && (
                     <p className="text-sm text-destructive">{errors.storeId.message}</p>
                   )}
+                  {activeStoreId && !isAllStores ? (
+                    <p className="text-xs text-muted-foreground">
+                      Using currently selected store. Switch stores in the header to change.
+                    </p>
+                  ) : isAllStores ? (
+                    <p className="text-xs text-muted-foreground">
+                      Select a specific store to create an invoice.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
@@ -348,12 +370,13 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleClose}
                     disabled={isSubmitting}
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
@@ -361,6 +384,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                     type="button"
                     onClick={() => setCurrentStep(2)}
                     disabled={isSubmitting}
+                    className="w-full sm:w-auto"
                   >
                     Next: Optional Fields →
                   </Button>
@@ -381,6 +405,9 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                     {errors.title && (
                       <p className="text-sm text-destructive">{errors.title.message}</p>
                     )}
+                    <p className="text-xs text-muted-foreground">
+                      Displayed on payment page (3-150 characters)
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -394,6 +421,9 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                     {errors.description && (
                       <p className="text-sm text-destructive">{errors.description.message}</p>
                     )}
+                    <p className="text-xs text-muted-foreground">
+                      Additional details shown to customer (3-500 characters)
+                    </p>
                   </div>
 
                   <div className="flex items-center space-x-3 rounded-lg border p-3">
@@ -441,25 +471,27 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   </div>
                 </div>
 
-                <div className="flex justify-between gap-3 pt-4">
+                <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-between">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setCurrentStep(1)}
                     disabled={isSubmitting}
+                    className="w-full sm:w-auto"
                   >
                     ← Back
                   </Button>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => setCurrentStep(1)}
                       disabled={isSubmitting}
+                      className="w-full sm:w-auto"
                     >
                       Skip
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Invoice
                     </Button>

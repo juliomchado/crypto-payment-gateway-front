@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, Copy, CheckCircle } from 'lucide-react'
 import { useApiKeyViewModel } from '@/viewmodels/api-key.viewmodel'
+import { useActiveStore, ALL_STORES_VALUE } from '@/contexts/active-store.context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,6 +51,7 @@ export function CreateKeyDialog({
   isLoading,
 }: CreateKeyDialogProps) {
   const { newlyCreatedKey, clearNewlyCreatedKey } = useApiKeyViewModel()
+  const { activeStoreId, isAllStores } = useActiveStore()
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -70,12 +72,20 @@ export function CreateKeyDialog({
   } = useForm<ApiKeyFormData>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
+      storeId: '',
       type: 'PAYMENT',
     },
   })
 
   const selectedStoreId = watch('storeId')
   const selectedType = watch('type')
+
+  // Auto-populate store when activeStoreId changes or dialog opens (but not if "All Stores")
+  useEffect(() => {
+    if (activeStoreId && !isAllStores && open) {
+      setValue('storeId', activeStoreId)
+    }
+  }, [activeStoreId, isAllStores, open, setValue])
 
   const handleFormSubmit = async (data: ApiKeyFormData) => {
     const result = await onSubmit(data)
@@ -171,7 +181,7 @@ export function CreateKeyDialog({
               <Select
                 value={selectedStoreId || ''}
                 onValueChange={(value) => setValue('storeId', value)}
-                disabled={isLoading}
+                disabled={isLoading || (!!activeStoreId && !isAllStores)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a store" />
@@ -187,6 +197,15 @@ export function CreateKeyDialog({
               {errors.storeId && (
                 <p className="text-sm text-destructive">{errors.storeId.message}</p>
               )}
+              {activeStoreId && !isAllStores ? (
+                <p className="text-xs text-muted-foreground">
+                  Using currently selected store. Switch stores in the header to change.
+                </p>
+              ) : isAllStores ? (
+                <p className="text-xs text-muted-foreground">
+                  Select a specific store to create an API key.
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">

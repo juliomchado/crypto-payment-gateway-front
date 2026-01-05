@@ -7,16 +7,20 @@ import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { RecentInvoices } from '@/components/dashboard/recent-invoices'
 import { useDashboardViewModel } from '@/viewmodels/dashboard.viewmodel'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
+import { useActiveStore } from '@/contexts/active-store.context'
 import { formatCurrency } from '@/lib/utils'
 
 export default function DashboardPage() {
   const { user } = useAuthViewModel()
+  const { activeStoreId, isAllStores } = useActiveStore()
   const { stats, revenueData, recentInvoices, isLoading, fetchDashboardData } =
     useDashboardViewModel()
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [fetchDashboardData])
+    // Pass store ID only if a specific store is selected (not "All Stores")
+    const storeIdFilter = !isAllStores ? activeStoreId : undefined
+    fetchDashboardData(storeIdFilter)
+  }, [fetchDashboardData, activeStoreId, isAllStores])
 
   return (
     <div className="space-y-6">

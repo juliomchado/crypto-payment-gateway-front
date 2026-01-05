@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { Toaster } from '@/components/ui/toaster'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
+import { ActiveStoreProvider } from '@/contexts/active-store.context'
 
 export default function DashboardLayout({
   children,
@@ -43,17 +44,19 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="hidden lg:block">
-        <Sidebar />
+    <ActiveStoreProvider>
+      <div className="flex h-screen overflow-hidden">
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6">
+            {children}
+          </main>
+        </div>
+        <Toaster />
       </div>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6">
-          {children}
-        </main>
-      </div>
-      <Toaster />
-    </div>
+    </ActiveStoreProvider>
   )
 }

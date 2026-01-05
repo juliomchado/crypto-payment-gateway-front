@@ -24,6 +24,8 @@ interface StoreActions {
   deleteStore: (id: string) => Promise<boolean>
   fetchStoreCurrencies: (storeId: string) => Promise<void>
   fetchAvailableCurrencies: () => Promise<void>
+  addStoreCurrency: (storeId: string, currencyId: string, minAmount: string, maxAmount: string) => Promise<boolean>
+  removeStoreCurrency: (storeId: string, currencyId: string) => Promise<boolean>
   configureCurrency: (storeId: string, data: ConfigureCurrencyData) => Promise<boolean>
   selectStore: (store: Store | null) => void
   clearError: () => void
@@ -129,6 +131,48 @@ export const useStoreViewModel = create<StoreViewModel>((set, get) => ({
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to fetch currencies' })
+    }
+  },
+
+  addStoreCurrency: async (
+    storeId: string,
+    currencyId: string,
+    minAmount: string,
+    maxAmount: string
+  ): Promise<boolean> => {
+    set({ isLoading: true, error: null })
+    try {
+      const storeCurrency = await storeService.addStoreCurrency(storeId, {
+        currencyId,
+        minAmount,
+        maxAmount,
+        isEnabled: true,
+      })
+      set((state) => ({
+        storeCurrencies: [...state.storeCurrencies, storeCurrency],
+        isLoading: false,
+      }))
+      return true
+    } catch (err) {
+      const error = err as { message?: string }
+      set({ error: error.message || 'Failed to add currency', isLoading: false })
+      return false
+    }
+  },
+
+  removeStoreCurrency: async (storeId: string, currencyId: string): Promise<boolean> => {
+    set({ isLoading: true, error: null })
+    try {
+      await storeService.removeStoreCurrency(storeId, currencyId)
+      set((state) => ({
+        storeCurrencies: state.storeCurrencies.filter((sc) => sc.currencyId !== currencyId),
+        isLoading: false,
+      }))
+      return true
+    } catch (err) {
+      const error = err as { message?: string }
+      set({ error: error.message || 'Failed to remove currency', isLoading: false })
+      return false
     }
   },
 
