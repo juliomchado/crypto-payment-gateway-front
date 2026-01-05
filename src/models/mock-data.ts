@@ -71,7 +71,7 @@ export const MOCK_USER: User = {
   firstName: 'Demo',
   lastName: 'User',
   language: 'en',
-  role: 'MERCHANT',
+  role: 'ADMIN', // Changed to ADMIN for testing admin panel access
   status: 'EMAIL_VERIFIED',
   emailVerifiedAt: '2024-01-01T00:00:00.000Z',
   createdAt: '2024-01-01T00:00:00.000Z',
