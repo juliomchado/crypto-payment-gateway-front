@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Shield,
+  Webhook,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -47,6 +49,11 @@ const navItems: NavItem[] = [
     icon: <Wallet className="h-5 w-5" />,
   },
   {
+    label: 'Webhooks',
+    href: '/dashboard/webhooks',
+    icon: <Webhook className="h-5 w-5" />,
+  },
+  {
     label: 'API Keys',
     href: '/dashboard/api-keys',
     icon: <Key className="h-5 w-5" />,
@@ -58,6 +65,14 @@ const navItems: NavItem[] = [
   },
 ]
 
+const adminNavItems: NavItem[] = [
+  {
+    label: 'Admin Panel',
+    href: '/admin/users',
+    icon: <Shield className="h-5 w-5" />,
+  },
+]
+
 interface SidebarProps {
   className?: string
   onNavigate?: () => void
@@ -66,8 +81,10 @@ interface SidebarProps {
 export function Sidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { logout } = useAuthViewModel()
+  const { user, logout } = useAuthViewModel()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const isAdmin = user?.role === 'ADMIN'
 
   const handleLogout = async () => {
     await logout()
@@ -134,6 +151,39 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
             </Link>
           )
         })}
+
+        {/* Admin Section */}
+        {isAdmin && (
+          <>
+            {!isCollapsed && (
+              <div className="px-3 py-2">
+                <p className="text-xs font-semibold text-muted-foreground">ADMIN</p>
+              </div>
+            )}
+            {adminNavItems.map((item) => {
+              const isActive = pathname.startsWith(item.href)
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-destructive text-destructive-foreground'
+                      : 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
+                    isCollapsed && 'justify-center px-2'
+                  )}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  {item.icon}
+                  {!isCollapsed && <span>{item.label}</span>}
+                </Link>
+              )
+            })}
+          </>
+        )}
       </nav>
 
       <div className="border-t p-2">

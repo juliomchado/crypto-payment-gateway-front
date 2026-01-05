@@ -6,18 +6,31 @@ export function middleware(request: NextRequest) {
 
   // Admin routes protection
   if (pathname.startsWith('/admin')) {
-    // In a real app, you would check the user's role from a session/JWT
-    // For now, this is a placeholder that allows access
-    // You should integrate with your auth system to check if user.role === 'ADMIN'
+    // Note: This middleware runs on the edge and cannot access localStorage
+    // For proper admin protection, you would need to:
+    // 1. Store user role in an HTTP-only cookie after login
+    // 2. Read and verify the cookie here
+    // 3. Decode JWT token to check if user.role === 'ADMIN'
 
-    // Example: Read from cookie and verify JWT to check role
-    // const token = request.cookies.get('token')?.value
-    // if (!token || !isAdmin(token)) {
-    //   return NextResponse.redirect(new URL('/dashboard', request.url))
-    // }
+    // For now, we'll rely on client-side protection in the layout
+    // In production with real backend, uncomment the code below:
 
-    // For mock mode, we'll allow access
-    // In production, uncomment the logic above
+    /*
+    const token = request.cookies.get('token')?.value
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    try {
+      // Verify JWT and check role
+      const payload = verifyJWT(token)
+      if (payload.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } catch {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    */
   }
 
   return NextResponse.next()
