@@ -79,8 +79,8 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onCopy }: ApiKeyTabl
           {apiKeys.map((apiKey) => {
             const isVisible = visibleKeys.has(apiKey.id)
             const displayKey = isVisible
-              ? `${apiKey.keyPrefix}${'*'.repeat(32)}`
-              : `${apiKey.keyPrefix}${'•'.repeat(32)}`
+              ? `pk_live_${'*'.repeat(28)}${apiKey.keyHint}`
+              : `pk_live_${'•'.repeat(28)}${apiKey.keyHint}`
 
             return (
               <TableRow key={apiKey.id}>
@@ -109,8 +109,8 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onCopy }: ApiKeyTabl
                   {formatDateTime(apiKey.createdAt)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={apiKey.revokedAt ? 'destructive' : 'success'}>
-                    {apiKey.revokedAt ? 'Revoked' : 'Active'}
+                  <Badge variant={apiKey.status === 'REVOKED' ? 'destructive' : 'success'}>
+                    {apiKey.status === 'REVOKED' ? 'Revoked' : 'Active'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -122,12 +122,12 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onCopy }: ApiKeyTabl
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onCopy?.(`${apiKey.keyPrefix}example_key`)}
+                        onClick={() => onCopy?.(`pk_live_${'*'.repeat(28)}${apiKey.keyHint}`)}
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy Key
+                        Copy Key Hint
                       </DropdownMenuItem>
-                      {!apiKey.revokedAt && (
+                      {apiKey.status === 'ACTIVE' && (
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => onRevoke?.(apiKey)}

@@ -20,7 +20,7 @@ import { useApiKeyViewModel } from '@/viewmodels/api-key.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
 import { useToast } from '@/hooks/use-toast'
 import { copyToClipboard } from '@/lib/utils'
-import type { ApiKey } from '@/models/types'
+import type { ApiKey, ApiKeyType } from '@/models/types'
 
 export default function ApiKeysPage() {
   const searchParams = useSearchParams()
@@ -41,7 +41,7 @@ export default function ApiKeysPage() {
   const handleCreateKey = async (data: {
     storeId: string
     name: string
-    permissions: string[]
+    type: ApiKeyType
   }) => {
     setIsSubmitting(true)
     const result = await createApiKey(data)
@@ -52,7 +52,7 @@ export default function ApiKeysPage() {
         title: 'API Key created',
         description: 'Your new API key has been generated.',
       })
-      return { secretKey: result.secretKey }
+      return { secretKey: result.key }
     }
     return null
   }
@@ -61,7 +61,7 @@ export default function ApiKeysPage() {
     if (!revokingKey) return
 
     setIsSubmitting(true)
-    const success = await revokeApiKey(revokingKey.id)
+    const success = await revokeApiKey(revokingKey.storeId, revokingKey.id)
     setIsSubmitting(false)
 
     if (success) {

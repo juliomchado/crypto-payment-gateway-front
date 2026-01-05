@@ -42,7 +42,7 @@ export function CurrencySelector({
                 <CryptoIcon symbol={selectedCurrency.currency.symbol} size={20} />
                 <span className="font-medium">{selectedCurrency.currency.symbol}</span>
                 <span className="text-xs text-muted-foreground">
-                  {selectedCurrency.currency.name}
+                  {selectedCurrency.currency.title}
                 </span>
               </div>
             )}
@@ -54,9 +54,9 @@ export function CurrencySelector({
               <div className="flex items-center gap-2">
                 <CryptoIcon symbol={sc.currency.symbol} size={20} />
                 <div className="flex flex-col">
-                  <span className="font-medium">{sc.currency.name}</span>
+                  <span className="font-medium">{sc.currency.title}</span>
                   <span className="text-xs text-muted-foreground">
-                    {NETWORK_NAMES[sc.currency.network] || sc.currency.network}
+                    {sc.currency.network?.title || sc.currency.network?.name || 'Network'}
                   </span>
                 </div>
               </div>

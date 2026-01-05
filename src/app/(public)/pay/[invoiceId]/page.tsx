@@ -60,7 +60,7 @@ export default function PaymentPage() {
     if (!selectedCurrency || !invoice) return
     await generateAddress({
       token: selectedCurrency.currency.symbol,
-      network: selectedCurrency.currency.network,
+      network: selectedCurrency.currency.network?.name || selectedCurrency.currency.networkId,
     })
   }
 
@@ -75,12 +75,14 @@ export default function PaymentPage() {
 
   // Get available networks from currencies
   const availableNetworks = Array.from(
-    new Set(storeCurrencies.map((sc) => sc.currency.network))
-  )
+    new Set(storeCurrencies.map((sc) => sc.currency.network?.name || sc.currency.networkId).filter(Boolean))
+  ) as string[]
 
   // Filter currencies by selected network
   const filteredCurrencies = selectedNetwork
-    ? storeCurrencies.filter((sc) => sc.currency.network === selectedNetwork)
+    ? storeCurrencies.filter((sc) =>
+        sc.currency.network?.name === selectedNetwork || sc.currency.networkId === selectedNetwork
+      )
     : []
 
   if (step === 'loading' || isLoading) {
@@ -219,7 +221,7 @@ export default function PaymentPage() {
               amount={selectedRate?.payerAmount || invoice.cryptoAmount?.toString() || invoice.amount.toString()}
               currency={invoice.cryptoCurrency || invoice.currency}
               address={invoice.paymentAddress}
-              network={invoice.network || 'ethereum'}
+              network={typeof invoice.network === 'string' ? invoice.network : invoice.network?.name || invoice.networkId || 'ethereum'}
               timeRemaining={timeRemaining}
               exchangeRate={selectedRate?.rate}
               onBack={handleBackToSelection}

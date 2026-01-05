@@ -25,10 +25,11 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useWalletViewModel } from '@/viewmodels/wallet.viewmodel'
 import { MOCK_MERCHANT } from '@/models/mock-data'
-import { NETWORK_STANDARD_NAMES, type NetworkStandard } from '@/services/wallet.service'
+import { CHAIN_TYPE_NAMES } from '@/services/wallet.service'
+import type { ChainType } from '@/models/types'
 
 const createWalletSchema = z.object({
-  chainType: z.enum(['ERC_20', 'SPL', 'BITCOIN']),
+  chainType: z.enum(['EVM', 'SOLANA', 'BITCOIN']),
 })
 
 type CreateWalletFormData = z.infer<typeof createWalletSchema>
@@ -52,7 +53,7 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
   } = useForm<CreateWalletFormData>({
     resolver: zodResolver(createWalletSchema),
     defaultValues: {
-      chainType: 'ERC_20',
+      chainType: 'EVM',
     },
   })
 
@@ -95,16 +96,16 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
             <Label htmlFor="chainType">Network Type *</Label>
             <Select
               value={watch('chainType')}
-              onValueChange={(value) => setValue('chainType', value as NetworkStandard)}
+              onValueChange={(value) => setValue('chainType', value as ChainType)}
               disabled={isSubmitting}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ERC_20">{NETWORK_STANDARD_NAMES.ERC_20}</SelectItem>
-                <SelectItem value="SPL">{NETWORK_STANDARD_NAMES.SPL}</SelectItem>
-                <SelectItem value="BITCOIN">{NETWORK_STANDARD_NAMES.BITCOIN}</SelectItem>
+                <SelectItem value="EVM">{CHAIN_TYPE_NAMES.EVM}</SelectItem>
+                <SelectItem value="SOLANA">{CHAIN_TYPE_NAMES.SOLANA}</SelectItem>
+                <SelectItem value="BITCOIN">{CHAIN_TYPE_NAMES.BITCOIN}</SelectItem>
               </SelectContent>
             </Select>
             {errors.chainType && (

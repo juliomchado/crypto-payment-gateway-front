@@ -2,17 +2,19 @@ import { CONFIG } from '@/lib/config'
 import { api } from './api'
 import { MOCK_API_KEYS } from '@/models/mock-data'
 import { generateId } from '@/lib/utils'
-import type { ApiKey, ApiResponse } from '@/models/types'
+import type { ApiKey, ApiResponse, ApiKeyType, ApiKeyStatus } from '@/models/types'
 
+// Request DTO matching backend API
 export interface CreateApiKeyData {
   storeId: string
-  name: string
-  permissions: string[]
+  name: string                    // 2-100 characters
+  type: ApiKeyType                // 'PAYMENT' | 'PAYOUT'
 }
 
+// Response when creating a new API key (includes full key only once)
 export interface CreateApiKeyResponse {
   apiKey: ApiKey
-  secretKey: string
+  key: string                     // Full API key (only shown once)
 }
 
 class ApiKeyService {
@@ -21,9 +23,9 @@ class ApiKeyService {
   async getApiKeys(storeId: string): Promise<ApiKey[]> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
-      return this.mockApiKeys.filter((key) => key.storeId === storeId && !key.revokedAt)
+      return this.mockApiKeys.filter((key) => key.storeId === storeId && key.status === 'ACTIVE')
     }
-    const response = await api.get<ApiResponse<ApiKey[]>>(`/stores/${storeId}/api-keys`)
+    const response = await api.get<ApiResponse<ApiKey[]>>(`/store/${storeId}/api-keys`)
     return response.data
   }
 
@@ -39,17 +41,9 @@ class ApiKeyService {
   async createApiKey(data: CreateApiKeyData): Promise<CreateApiKeyResponse> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
-      const newKey: ApiKey = {
-        id: generateId(),
-        storeId: data.storeId,
-        name: data.name,
-        keyPrefix: 'pk_live_',
-        permissions: data.permissions,
-        createdAt: new Date().toISOString(),
-      }
-      this.mockApiKeys.push(newKey)
 
-      const secretKey =
+      // Generate a mock API key
+      const fullKey =
         'pk_live_' +
         Array.from({ length: 32 }, () =>
           'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[
@@ -57,16 +51,30 @@ class ApiKeyService {
           ]
         ).join('')
 
-      return { apiKey: newKey, secretKey }
+      const newKey: ApiKey = {
+        id: generateId(),
+        storeId: data.storeId,
+        name: data.name,
+        type: data.type,
+        keyHint: fullKey.slice(-4),  // Last 4 characters
+        status: 'ACTIVE',
+        userId: 'mock-user-id',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      this.mockApiKeys.push(newKey)
+
+      return { apiKey: newKey, key: fullKey }
     }
+
     const response = await api.post<ApiResponse<CreateApiKeyResponse>>(
-      `/stores/${data.storeId}/api-keys`,
-      data
+      `/store/${data.storeId}/api-keys`,
+      { name: data.name, type: data.type }
     )
     return response.data
   }
 
-  async revokeApiKey(keyId: string): Promise<void> {
+  async revokeApiKey(storeId: string, keyId: string): Promise<ApiKey> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
       const index = this.mockApiKeys.findIndex((key) => key.id === keyId)
@@ -75,11 +83,16 @@ class ApiKeyService {
       }
       this.mockApiKeys[index] = {
         ...this.mockApiKeys[index],
-        revokedAt: new Date().toISOString(),
+        status: 'REVOKED' as ApiKeyStatus,
+        updatedAt: new Date().toISOString(),
       }
-      return
+      return this.mockApiKeys[index]
     }
-    await api.patch(`/api-keys/${keyId}/revoke`)
+
+    const response = await api.patch<ApiResponse<ApiKey>>(
+      `/store/${storeId}/api-keys/${keyId}/revoke`
+    )
+    return response.data
   }
 
   private simulateDelay(ms: number = 300): Promise<void> {

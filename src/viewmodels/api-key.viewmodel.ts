@@ -17,7 +17,7 @@ interface ApiKeyActions {
   fetchApiKeys: (storeId: string) => Promise<void>
   fetchAllApiKeys: () => Promise<void>
   createApiKey: (data: CreateApiKeyData) => Promise<CreateApiKeyResponse | null>
-  revokeApiKey: (keyId: string) => Promise<boolean>
+  revokeApiKey: (storeId: string, keyId: string) => Promise<boolean>
   clearNewlyCreatedKey: () => void
   clearError: () => void
 }
@@ -69,13 +69,13 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
     }
   },
 
-  revokeApiKey: async (keyId: string): Promise<boolean> => {
+  revokeApiKey: async (storeId: string, keyId: string): Promise<boolean> => {
     set({ isLoading: true, error: null })
     try {
-      await apiKeyService.revokeApiKey(keyId)
+      const revokedKey = await apiKeyService.revokeApiKey(storeId, keyId)
       set((state) => ({
         apiKeys: state.apiKeys.map((key) =>
-          key.id === keyId ? { ...key, revokedAt: new Date().toISOString() } : key
+          key.id === keyId ? revokedKey : key
         ),
         isLoading: false,
       }))

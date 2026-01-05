@@ -38,7 +38,7 @@ export function UserMenu() {
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-primary/10 text-primary">
-              {user ? getInitials(user.name) : 'U'}
+              {user ? getInitials(`${user.firstName} ${user.lastName}`) : 'U'}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -46,7 +46,7 @@ export function UserMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
+            <p className="text-sm font-medium leading-none">{user ? `${user.firstName} ${user.lastName}` : 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || 'user@example.com'}
             </p>

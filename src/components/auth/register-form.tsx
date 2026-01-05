@@ -17,7 +17,8 @@ import { useToast } from '@/hooks/use-toast'
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    firstName: z.string().min(2, 'First name must be at least 2 characters').max(50, 'First name must be at most 50 characters'),
+    lastName: z.string().min(2, 'Last name must be at least 2 characters').max(50, 'Last name must be at most 50 characters'),
     email: z.string().email('Please enter a valid email'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
@@ -57,7 +58,8 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     clearError()
     const success = await registerUser({
-      name: data.name,
+      firstName: data.firstName,
+      lastName: data.lastName,
       email: data.email,
       password: data.password,
     })
@@ -80,17 +82,32 @@ export function RegisterForm() {
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              placeholder="John Doe"
-              {...register('name')}
-              disabled={isLoading}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                {...register('firstName')}
+                disabled={isLoading}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-destructive">{errors.firstName.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                {...register('lastName')}
+                disabled={isLoading}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-destructive">{errors.lastName.message}</p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

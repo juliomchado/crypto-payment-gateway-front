@@ -75,7 +75,7 @@ export default function InvoiceDetailPage() {
             Created {formatDateTime(selectedInvoice.createdAt)}
           </p>
         </div>
-        <StatusBadge status={selectedInvoice.status} />
+        <StatusBadge status={selectedInvoice.paymentStatus} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -138,11 +138,13 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {selectedInvoice.network && (
+            {(selectedInvoice.networkId || selectedInvoice.network) && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Network</span>
                 <span className="text-sm font-medium">
-                  {NETWORK_NAMES[selectedInvoice.network] || selectedInvoice.network}
+                  {selectedInvoice.network?.title ||
+                   (selectedInvoice.networkId && NETWORK_NAMES[selectedInvoice.networkId]) ||
+                   'Unknown'}
                 </span>
               </div>
             )}
@@ -156,7 +158,7 @@ export default function InvoiceDetailPage() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
-              <StatusBadge status={selectedInvoice.status} />
+              <StatusBadge status={selectedInvoice.paymentStatus} />
             </div>
 
             {selectedInvoice.paymentAddress && (
@@ -203,7 +205,7 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {selectedInvoice.status === 'AWAITING_PAYMENT' && (
+            {selectedInvoice.paymentStatus === 'PENDING' && (
               <div className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
                 <p className="text-sm font-medium">Awaiting Payment</p>
                 <p className="mt-1 text-xs">
@@ -212,7 +214,7 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {selectedInvoice.status === 'PAID' && (
+            {selectedInvoice.paymentStatus === 'CONFIRMED' && (
               <div className="rounded-lg bg-success/10 p-3 text-sm text-success">
                 <p className="text-sm font-medium">Payment Confirmed</p>
                 <p className="mt-1 text-xs">

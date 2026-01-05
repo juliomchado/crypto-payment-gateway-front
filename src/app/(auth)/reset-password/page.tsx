@@ -56,7 +56,7 @@ function ResetPasswordForm() {
 
     setIsLoading(true)
     try {
-      await authService.resetPassword(token, data.password)
+      await authService.resetPassword({ token, password: data.password })
       setIsSuccess(true)
       toast({
         title: 'Password reset successful!',

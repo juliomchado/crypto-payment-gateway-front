@@ -8,7 +8,6 @@ import { Loader2, Copy, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -24,12 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { Store } from '@/models/types'
+import type { Store, ApiKeyType } from '@/models/types'
 
 const apiKeySchema = z.object({
   storeId: z.string().min(1, 'Please select a store'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  permissions: z.array(z.string()).min(1, 'Select at least one permission'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be at most 100 characters'),
+  type: z.enum(['PAYMENT', 'PAYOUT'], { required_error: 'Please select a key type' }),
 })
 
 type ApiKeyFormData = z.infer<typeof apiKeySchema>
@@ -37,17 +36,10 @@ type ApiKeyFormData = z.infer<typeof apiKeySchema>
 interface CreateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: ApiKeyFormData) => Promise<{ secretKey: string } | null>
+  onSubmit: (data: { storeId: string; name: string; type: ApiKeyType }) => Promise<{ secretKey: string } | null>
   stores: Store[]
   isLoading?: boolean
 }
-
-const availablePermissions = [
-  { value: 'invoices:create', label: 'Create Invoices' },
-  { value: 'invoices:read', label: 'Read Invoices' },
-  { value: 'stores:read', label: 'Read Stores' },
-  { value: 'currencies:read', label: 'Read Currencies' },
-]
 
 export function CreateKeyDialog({
   open,
@@ -69,12 +61,12 @@ export function CreateKeyDialog({
   } = useForm<ApiKeyFormData>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
-      permissions: ['invoices:create', 'invoices:read'],
+      type: 'PAYMENT',
     },
   })
 
-  const selectedPermissions = watch('permissions') || []
   const selectedStoreId = watch('storeId')
+  const selectedType = watch('type')
 
   const handleFormSubmit = async (data: ApiKeyFormData) => {
     const result = await onSubmit(data)
@@ -96,18 +88,6 @@ export function CreateKeyDialog({
     setCreatedKey(null)
     setCopied(false)
     onOpenChange(false)
-  }
-
-  const togglePermission = (permission: string) => {
-    const current = selectedPermissions || []
-    if (current.includes(permission)) {
-      setValue(
-        'permissions',
-        current.filter((p) => p !== permission)
-      )
-    } else {
-      setValue('permissions', [...current, permission])
-    }
   }
 
   if (createdKey) {
@@ -213,28 +193,28 @@ export function CreateKeyDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Permissions</Label>
-              <div className="space-y-2">
-                {availablePermissions.map((permission) => (
-                  <div key={permission.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={permission.value}
-                      checked={selectedPermissions.includes(permission.value)}
-                      onCheckedChange={() => togglePermission(permission.value)}
-                      disabled={isLoading}
-                    />
-                    <label
-                      htmlFor={permission.value}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {permission.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              {errors.permissions && (
-                <p className="text-sm text-destructive">{errors.permissions.message}</p>
+              <Label>Key Type</Label>
+              <Select
+                value={selectedType || ''}
+                onValueChange={(value) => setValue('type', value as ApiKeyType)}
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select key type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PAYMENT">Payment - Accept crypto payments</SelectItem>
+                  <SelectItem value="PAYOUT">Payout - Send crypto payouts</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.type && (
+                <p className="text-sm text-destructive">{errors.type.message}</p>
               )}
+              <p className="text-xs text-muted-foreground">
+                {selectedType === 'PAYOUT'
+                  ? 'Use this key to send cryptocurrency payouts to recipients.'
+                  : 'Use this key to create invoices and accept cryptocurrency payments.'}
+              </p>
             </div>
           </div>
 

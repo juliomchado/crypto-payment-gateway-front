@@ -71,14 +71,14 @@ export const useWalletViewModel = create<WalletViewModel>((set, get) => ({
       set((state) => ({
         wallets: state.wallets.map((w) =>
           w.id === walletId
-            ? { ...w, derivedAddressCount: w.derivedAddressCount + 1 }
+            ? { ...w, nextAddressIndex: (w.nextAddressIndex || 0) + 1 }
             : w
         ),
         selectedWallet:
           state.selectedWallet?.id === walletId
             ? {
                 ...state.selectedWallet,
-                derivedAddressCount: state.selectedWallet.derivedAddressCount + 1,
+                nextAddressIndex: (state.selectedWallet.nextAddressIndex || 0) + 1,
               }
             : state.selectedWallet,
         isLoading: false,
