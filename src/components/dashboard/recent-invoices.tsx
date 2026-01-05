@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { Invoice, InvoiceStatus } from '@/models/types'
+import type { Invoice, PaymentStatus } from '@/models/types'
 
 interface RecentInvoicesProps {
   invoices: Invoice[]
@@ -15,16 +15,20 @@ interface RecentInvoicesProps {
 }
 
 const statusConfig: Record<
-  InvoiceStatus,
+  PaymentStatus,
   { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' }
 > = {
   PENDING: { label: 'Pending', variant: 'secondary' },
-  AWAITING_PAYMENT: { label: 'Awaiting', variant: 'warning' },
+  DETECTING: { label: 'Detecting', variant: 'warning' },
   CONFIRMING: { label: 'Confirming', variant: 'warning' },
-  PAID: { label: 'Paid', variant: 'success' },
+  CONFIRMED: { label: 'Confirmed', variant: 'success' },
+  OVERPAID: { label: 'Overpaid', variant: 'warning' },
+  UNDERPAID: { label: 'Underpaid', variant: 'warning' },
   EXPIRED: { label: 'Expired', variant: 'destructive' },
-  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+  FAILED: { label: 'Failed', variant: 'destructive' },
+  REFUNDING: { label: 'Refunding', variant: 'warning' },
   REFUNDED: { label: 'Refunded', variant: 'secondary' },
+  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
 }
 
 export function RecentInvoices({ invoices, isLoading }: RecentInvoicesProps) {
@@ -70,7 +74,7 @@ export function RecentInvoices({ invoices, isLoading }: RecentInvoicesProps) {
         ) : (
           <div className="space-y-4">
             {invoices.map((invoice) => {
-              const status = statusConfig[invoice.status]
+              const status = statusConfig[invoice.paymentStatus]
               return (
                 <Link
                   key={invoice.id}

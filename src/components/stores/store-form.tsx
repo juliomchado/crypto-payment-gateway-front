@@ -56,7 +56,7 @@ export function StoreForm({
     resolver: zodResolver(storeSchema),
     defaultValues: {
       name: store?.name || '',
-      isActive: store?.isActive ?? true,
+      isActive: store ? store.status === 'ACTIVE' : true,
       urlCallback: store?.urlCallback || '',
       urlReturn: store?.urlReturn || '',
       urlSuccess: store?.urlSuccess || '',

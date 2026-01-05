@@ -111,7 +111,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
       const invoice = await createInvoice({
         storeId: data.storeId,
         orderId: data.orderId,
-        amount: Number(data.amount),
+        amount: data.amount,
         currency: data.currency,
         title: data.title || undefined,
         description: data.description || undefined,

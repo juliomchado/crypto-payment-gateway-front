@@ -5,15 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
+export function formatCurrency(amount: number | string, currency: string = 'USD'): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-  }).format(amount)
+  }).format(numAmount)
 }
 
-export function formatCrypto(amount: number, symbol: string): string {
-  return `${amount.toFixed(8)} ${symbol}`
+export function formatCrypto(amount: number | string, symbol: string): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+  return `${numAmount.toFixed(8)} ${symbol}`
 }
 
 export function formatDate(date: string | Date): string {

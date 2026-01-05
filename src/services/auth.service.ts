@@ -9,9 +9,25 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  name: string
   email: string
+  firstName: string
+  lastName: string
   password: string
+  country?: string
+  language?: string  // Default: 'en'
+}
+
+export interface ForgotPasswordData {
+  email: string
+}
+
+export interface ResetPasswordData {
+  token: string      // 6 character verification token
+  password: string   // 8+ chars, uppercase, lowercase, number, special char
+}
+
+export interface VerifyEmailData {
+  token: string      // 6 character verification token
 }
 
 export interface AuthResponse {
@@ -36,8 +52,11 @@ class AuthService {
       return {
         data: {
           ...MOCK_USER,
-          name: data.name,
+          firstName: data.firstName,
+          lastName: data.lastName,
           email: data.email,
+          country: data.country,
+          language: data.language || 'en',
         },
         message: 'Registration successful. Please verify your email.',
       }
@@ -61,20 +80,20 @@ class AuthService {
     return api.post<ApiResponse<null>>('/auth/forgot-password', { email })
   }
 
-  async resetPassword(token: string, password: string): Promise<ApiResponse<null>> {
+  async resetPassword(data: ResetPasswordData): Promise<ApiResponse<null>> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
       return { data: null, message: 'Password reset successful' }
     }
-    return api.post<ApiResponse<null>>('/auth/reset-password', { token, password })
+    return api.post<ApiResponse<null>>('/auth/reset-password', data)
   }
 
-  async verifyEmail(token: string): Promise<ApiResponse<null>> {
+  async verifyEmail(data: VerifyEmailData): Promise<ApiResponse<null>> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
       return { data: null, message: 'Email verified successfully' }
     }
-    return api.post<ApiResponse<null>>('/auth/verify-email', { token })
+    return api.post<ApiResponse<null>>('/auth/verify-email', data)
   }
 
   async getCurrentUser(): Promise<User | null> {

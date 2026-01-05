@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency, shortenAddress } from '@/lib/utils'
-import { NETWORK_NAMES } from '@/models/mock-data'
+import { CHAIN_TYPE_NAMES } from '@/services/wallet.service'
 import type { Wallet as WalletType } from '@/models/types'
 
 interface WalletCardProps {
@@ -19,36 +19,38 @@ export function WalletCard({ wallet, onCopy }: WalletCardProps) {
           <CardTitle className="text-base">
             <div className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-primary" />
-              {NETWORK_NAMES[wallet.network] || wallet.network}
+              {CHAIN_TYPE_NAMES[wallet.chainType] || wallet.chainType}
             </div>
           </CardTitle>
           <Badge variant="success">Active</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Address</p>
-          <div className="mt-1 flex items-center gap-2">
-            <code className="flex-1 text-xs">{shortenAddress(wallet.address, 8)}</code>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => onCopy?.(wallet.address)}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
+        {wallet.addresses && wallet.addresses.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground">Primary Address</p>
+            <div className="mt-1 flex items-center gap-2">
+              <code className="flex-1 text-xs">{shortenAddress(wallet.addresses[0].address, 8)}</code>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => onCopy?.(wallet.addresses![0].address)}
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-center justify-between pt-2 border-t">
           <div>
-            <p className="text-xs text-muted-foreground">Balance</p>
-            <p className="text-lg font-bold">{formatCurrency(wallet.balance)}</p>
+            <p className="text-xs text-muted-foreground">Type</p>
+            <p className="text-sm font-medium">{wallet.type}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Addresses</p>
-            <p className="text-lg font-bold">{wallet.derivedAddressCount}</p>
+            <p className="text-xs text-muted-foreground">Status</p>
+            <p className="text-sm font-medium">{wallet.status}</p>
           </div>
         </div>
       </CardContent>

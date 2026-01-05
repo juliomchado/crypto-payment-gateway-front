@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/utils'
 
 interface PaymentStatusProps {
   status: 'success' | 'expired' | 'error' | 'confirming'
-  amount?: number
+  amount?: number | string
   currency?: string
   txHash?: string
   onRetry?: () => void

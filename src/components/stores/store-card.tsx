@@ -86,8 +86,8 @@ export function StoreCard({ store, onEdit, onDelete }: StoreCardProps) {
               <span className="font-medium">{store.invoiceCount}</span>
             </div>
           </div>
-          <Badge variant={store.isActive ? 'success' : 'secondary'}>
-            {store.isActive ? 'Active' : 'Inactive'}
+          <Badge variant={store.status === 'ACTIVE' ? 'success' : 'secondary'}>
+            {store.status === 'ACTIVE' ? 'Active' : 'Inactive'}
           </Badge>
         </div>
       </CardFooter>

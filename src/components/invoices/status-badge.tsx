@@ -1,21 +1,25 @@
 import { Badge } from '@/components/ui/badge'
-import type { InvoiceStatus } from '@/models/types'
+import type { PaymentStatus } from '@/models/types'
 
 interface StatusBadgeProps {
-  status: InvoiceStatus
+  status: PaymentStatus
 }
 
 const statusConfig: Record<
-  InvoiceStatus,
+  PaymentStatus,
   { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' }
 > = {
   PENDING: { label: 'Pending', variant: 'secondary' },
-  AWAITING_PAYMENT: { label: 'Awaiting Payment', variant: 'warning' },
+  DETECTING: { label: 'Detecting', variant: 'warning' },
   CONFIRMING: { label: 'Confirming', variant: 'warning' },
-  PAID: { label: 'Paid', variant: 'success' },
+  CONFIRMED: { label: 'Confirmed', variant: 'success' },
+  OVERPAID: { label: 'Overpaid', variant: 'warning' },
+  UNDERPAID: { label: 'Underpaid', variant: 'warning' },
   EXPIRED: { label: 'Expired', variant: 'destructive' },
-  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+  FAILED: { label: 'Failed', variant: 'destructive' },
+  REFUNDING: { label: 'Refunding', variant: 'warning' },
   REFUNDED: { label: 'Refunded', variant: 'secondary' },
+  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {

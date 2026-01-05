@@ -30,8 +30,12 @@ import type { StoreCurrency, Currency } from '@/models/types'
 
 const currencyConfigSchema = z.object({
   currencyId: z.string().min(1, 'Please select a currency'),
-  minAmount: z.number().min(0, 'Min amount must be positive'),
-  maxAmount: z.number().min(0, 'Max amount must be positive'),
+  minAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+    message: 'Min amount must be a positive number',
+  }),
+  maxAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+    message: 'Max amount must be a positive number',
+  }),
   isEnabled: z.boolean(),
 })
 
@@ -64,8 +68,8 @@ export function CurrencyConfig({
     resolver: zodResolver(currencyConfigSchema),
     defaultValues: {
       isEnabled: true,
-      minAmount: 10,
-      maxAmount: 10000,
+      minAmount: '10',
+      maxAmount: '10000',
     },
   })
 
@@ -75,8 +79,8 @@ export function CurrencyConfig({
   const openAddDialog = () => {
     reset({
       currencyId: '',
-      minAmount: 10,
-      maxAmount: 10000,
+      minAmount: '10',
+      maxAmount: '10000',
       isEnabled: true,
     })
     setEditingCurrency(null)
@@ -143,7 +147,7 @@ export function CurrencyConfig({
                   <CardTitle className="text-base">
                     {sc.currency.symbol}
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {NETWORK_NAMES[sc.currency.network] || sc.currency.network}
+                      {sc.currency.network?.title || sc.currency.network?.name || 'Network'}
                     </span>
                   </CardTitle>
                   <Switch checked={sc.isEnabled} disabled />
@@ -177,9 +181,7 @@ export function CurrencyConfig({
                 <Label>Currency</Label>
                 {editingCurrency ? (
                   <Input
-                    value={`${editingCurrency.currency.symbol} (${NETWORK_NAMES[editingCurrency.currency.network] ||
-                      editingCurrency.currency.network
-                      })`}
+                    value={`${editingCurrency.currency.symbol} (${editingCurrency.currency.network?.title || editingCurrency.currency.network?.name || 'Network'})`}
                     disabled
                   />
                 ) : (
@@ -194,8 +196,7 @@ export function CurrencyConfig({
                     <SelectContent>
                       {unconfiguredCurrencies.map((currency) => (
                         <SelectItem key={currency.id} value={currency.id}>
-                          {currency.symbol} -{' '}
-                          {NETWORK_NAMES[currency.network] || currency.network}
+                          {currency.symbol} - {currency.network?.title || currency.network?.name || 'Network'}
                         </SelectItem>
                       ))}
                     </SelectContent>

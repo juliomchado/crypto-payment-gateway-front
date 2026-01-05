@@ -2,30 +2,27 @@ import { CONFIG } from '@/lib/config'
 import { api } from './api'
 import { MOCK_WALLETS, MOCK_MERCHANT } from '@/models/mock-data'
 import { generateId } from '@/lib/utils'
-import type { Wallet, DerivedAddress, ApiResponse } from '@/models/types'
-
-// Backend NetworkStandard enum values
-export type NetworkStandard = 'ERC_20' | 'SPL' | 'BITCOIN'
+import type { Wallet, DerivedAddress, ApiResponse, ChainType } from '@/models/types'
 
 export interface CreateWalletData {
   merchantId: string
-  chainType: NetworkStandard
+  chainType: ChainType
 }
 
-// User-friendly names for network standards
-export const NETWORK_STANDARD_NAMES: Record<NetworkStandard, string> = {
-  ERC_20: 'EVM (Ethereum, BSC, Polygon)',
-  SPL: 'Solana',
+// User-friendly names for chain types
+export const CHAIN_TYPE_NAMES: Record<ChainType, string> = {
+  EVM: 'EVM (Ethereum, BSC, Polygon)',
+  SOLANA: 'Solana',
   BITCOIN: 'Bitcoin'
 }
 
-// Network to NetworkStandard mapping
-const NETWORK_TO_STANDARD: Record<string, NetworkStandard> = {
-  'ethereum': 'ERC_20',
-  'bsc': 'ERC_20',
-  'polygon': 'ERC_20',
+// Network to ChainType mapping
+const NETWORK_TO_CHAIN_TYPE: Record<string, ChainType> = {
+  'ethereum': 'EVM',
+  'bsc': 'EVM',
+  'polygon': 'EVM',
   'bitcoin': 'BITCOIN',
-  'solana': 'SPL',
+  'solana': 'SOLANA',
 }
 
 class WalletService {
@@ -61,30 +58,37 @@ class WalletService {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
 
-      const mockAddresses: Record<NetworkStandard, string> = {
-        ERC_20: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
+      const mockAddresses: Record<ChainType, string> = {
+        EVM: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
         BITCOIN: 'bc1q' + Math.random().toString(36).substring(2, 42),
-        SPL: Array.from({ length: 44 }, () =>
+        SOLANA: Array.from({ length: 44 }, () =>
           'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789'[
             Math.floor(Math.random() * 58)
           ]
         ).join(''),
       }
 
-      // Map NetworkStandard to network for storage
-      const networkMap: Record<NetworkStandard, string> = {
-        'ERC_20': 'ethereum',
-        'BITCOIN': 'bitcoin',
-        'SPL': 'solana',
-      }
-
+      const walletId = generateId()
       const newWallet: Wallet = {
-        id: generateId(),
+        id: walletId,
         merchantId: data.merchantId,
-        network: networkMap[data.chainType],
-        address: mockAddresses[data.chainType],
-        balance: 0,
-        derivedAddressCount: 0,
+        chainType: data.chainType,
+        type: 'HOT',
+        status: 'ACTIVE',
+        publicKey: '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+        derivationPath: "m/44'/60'/0'",
+        nextAddressIndex: 1,
+        addresses: [{
+          id: generateId(),
+          address: mockAddresses[data.chainType],
+          derivationIndex: 0,
+          status: 'AVAILABLE',
+          totalReceived: '0',
+          totalWithdrawn: '0',
+          masterWalletId: walletId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -104,21 +108,25 @@ class WalletService {
       }
 
       const wallet = this.mockWallets[walletIndex]
+      const nextIndex = wallet.addresses ? wallet.addresses.length : 0
       const newAddress: DerivedAddress = {
         id: generateId(),
-        walletId,
+        walletId: walletId,
         address: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        index: wallet.derivedAddressCount,
+        index: nextIndex,
         isUsed: false,
         createdAt: new Date().toISOString(),
       }
 
+      // Update wallet's nextAddressIndex
       this.mockWallets[walletIndex] = {
         ...wallet,
-        derivedAddressCount: wallet.derivedAddressCount + 1,
+        nextAddressIndex: (wallet.nextAddressIndex || 0) + 1,
         updatedAt: new Date().toISOString(),
       }
 
+      // Note: The full Address object would be created on the backend,
+      // but we only return the DerivedAddress info to the client
       return newAddress
     }
     const response = await api.post<ApiResponse<DerivedAddress>>(`/wallets/${walletId}/derive`)
