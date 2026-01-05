@@ -1,6 +1,6 @@
 import { CONFIG } from '@/lib/config'
 import { api } from './api'
-import { MOCK_USER } from '@/models/mock-data'
+import { MOCK_USER, MOCK_MERCHANT_USER, MOCK_ADMIN_USER } from '@/models/mock-data'
 import type { User, ApiResponse } from '@/models/types'
 
 export interface LoginCredentials {
@@ -38,9 +38,17 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay()
-      if (credentials.email === 'demo@cryptogateway.com' && credentials.password === 'password') {
-        return { user: MOCK_USER }
+
+      // Check merchant account
+      if (credentials.email === 'merchant@cryptogateway.com' && credentials.password === 'password') {
+        return { user: MOCK_MERCHANT_USER }
       }
+
+      // Check admin account
+      if (credentials.email === 'admin@cryptogateway.com' && credentials.password === 'admin123') {
+        return { user: MOCK_ADMIN_USER }
+      }
+
       throw { message: 'Invalid credentials', statusCode: 401 }
     }
     return api.post<AuthResponse>('/auth/login', credentials)

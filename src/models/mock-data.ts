@@ -64,19 +64,35 @@ export const MOCK_NETWORKS: Network[] = [
   },
 ]
 
-// Mock User
-export const MOCK_USER: User = {
+// Mock Users - Multiple accounts for testing different roles
+export const MOCK_MERCHANT_USER: User = {
   id: '019b57ef-0000-0000-0000-000000000001',
-  email: 'demo@cryptogateway.com',
-  firstName: 'Demo',
-  lastName: 'User',
+  email: 'merchant@cryptogateway.com',
+  firstName: 'John',
+  lastName: 'Merchant',
   language: 'en',
-  role: 'ADMIN', // Changed to ADMIN for testing admin panel access
+  role: 'MERCHANT',
   status: 'EMAIL_VERIFIED',
   emailVerifiedAt: '2024-01-01T00:00:00.000Z',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 }
+
+export const MOCK_ADMIN_USER: User = {
+  id: '019b57ef-0000-0000-0000-000000000009',
+  email: 'admin@cryptogateway.com',
+  firstName: 'Admin',
+  lastName: 'System',
+  language: 'en',
+  role: 'ADMIN',
+  status: 'KYC_LEVEL_3',
+  emailVerifiedAt: '2024-01-01T00:00:00.000Z',
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
+}
+
+// Default user for demo login (merchant account)
+export const MOCK_USER: User = MOCK_MERCHANT_USER
 
 // Mock Merchant
 export const MOCK_MERCHANT: Merchant = {
