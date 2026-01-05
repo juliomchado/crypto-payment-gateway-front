@@ -25,7 +25,8 @@ export default function AdminLayout({
       if (!isAuthenticated) {
         router.push('/login')
       } else if (user && user.role !== 'ADMIN') {
-        router.push('/dashboard')
+        // MERCHANT goes to dashboard, USER goes to home (they only make payments)
+        router.push(user.role === 'MERCHANT' ? '/dashboard' : '/')
       }
     }
   }, [isAuthenticated, isLoading, user, router])
