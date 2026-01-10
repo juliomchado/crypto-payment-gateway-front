@@ -179,7 +179,6 @@ export type PaymentStatus =
   | 'DETECTING'
   | 'CONFIRMING'
   | 'CONFIRMED'
-  | 'COMPLETED'
   | 'OVERPAID'
   | 'UNDERPAID'
   | 'EXPIRED'

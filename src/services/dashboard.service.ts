@@ -11,7 +11,7 @@ class DashboardService {
       // If filtering by store, calculate stats for that store only
       if (storeId) {
         const storeInvoices = MOCK_INVOICES.filter(inv => inv.storeId === storeId)
-        const completedInvoices = storeInvoices.filter(inv => inv.paymentStatus === 'COMPLETED')
+        const completedInvoices = storeInvoices.filter(inv => inv.paymentStatus === 'CONFIRMED')
         const totalRevenue = completedInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
 
         return {
