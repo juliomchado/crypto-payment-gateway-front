@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
 export const ALL_STORES_VALUE = '__ALL_STORES__'
 
@@ -15,31 +15,23 @@ const ActiveStoreContext = createContext<ActiveStoreContextType | undefined>(und
 const STORAGE_KEY = 'active-store-id'
 
 export function ActiveStoreProvider({ children }: { children: ReactNode }) {
-  const [activeStoreId, setActiveStoreIdState] = useState<string | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      setActiveStoreIdState(stored)
+  // Initialize from localStorage on client, use ALL_STORES_VALUE on server
+  // This prevents hydration mismatch
+  const [activeStoreId, setActiveStoreIdState] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return ALL_STORES_VALUE
     }
-    setIsInitialized(true)
-  }, [])
+    return localStorage.getItem(STORAGE_KEY) || ALL_STORES_VALUE
+  })
 
   // Save to localStorage when changed
   const setActiveStoreId = (storeId: string | null) => {
-    setActiveStoreIdState(storeId)
-    if (storeId) {
-      localStorage.setItem(STORAGE_KEY, storeId)
-    } else {
-      localStorage.removeItem(STORAGE_KEY)
-    }
-  }
+    const value = storeId || ALL_STORES_VALUE
+    setActiveStoreIdState(value)
 
-  // Don't render children until initialized to prevent hydration mismatch
-  if (!isInitialized) {
-    return null
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, value)
+    }
   }
 
   const isAllStores = activeStoreId === ALL_STORES_VALUE

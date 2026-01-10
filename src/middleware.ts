@@ -9,21 +9,23 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedPaths.some(path => pathname.startsWith(path))
 
   if (isProtectedRoute) {
-    const token = request.cookies.get('token')?.value
-    const mockUser = request.cookies.get('mock_user')?.value
+    // In production: only check JWT cookie
+    // In development with MOCK: skip middleware check (handled client-side)
+    const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
-    // Check authentication: either real token or mock user (for development)
-    const isAuthenticated = token || mockUser
+    if (!isMockMode) {
+      const token = request.cookies.get('token')?.value
 
-    if (!isAuthenticated) {
-      // No authentication found - redirect to login
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      if (!token) {
+        // No authentication found - redirect to login
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+
+      // Token exists - backend will validate on API calls
+      // Admin-only routes checked in layout (client-side) since we need to decode JWT
     }
-
-    // Token exists - backend will validate on API calls
-    // Admin-only routes checked in layout (client-side) since we need to decode JWT
   }
 
   return NextResponse.next()
