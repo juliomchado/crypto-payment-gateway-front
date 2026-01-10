@@ -29,6 +29,12 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await authService.login(credentials)
+
+      // Persist user session in localStorage for MOCK mode
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
+        localStorage.setItem('mock_user', JSON.stringify(response.user))
+      }
+
       set({
         user: response.user,
         isAuthenticated: true,
@@ -65,6 +71,11 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
     set({ isLoading: true })
     try {
       await authService.logout()
+
+      // Clear localStorage for MOCK mode
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('mock_user')
+      }
     } finally {
       set({
         user: null,

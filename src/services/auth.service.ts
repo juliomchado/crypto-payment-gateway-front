@@ -107,7 +107,20 @@ class AuthService {
   async getCurrentUser(): Promise<User | null> {
     if (CONFIG.USE_MOCK) {
       await this.simulateDelay(200)
-      return MOCK_USER
+      // Load user from localStorage for persistent session
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('mock_user')
+        if (storedUser) {
+          try {
+            return JSON.parse(storedUser) as User
+          } catch {
+            // Invalid stored data, clear it
+            localStorage.removeItem('mock_user')
+            return null
+          }
+        }
+      }
+      return null
     }
     try {
       const response = await api.get<ApiResponse<User>>('/auth/me')
