@@ -4,33 +4,26 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Admin routes protection
-  if (pathname.startsWith('/admin')) {
-    // Note: This middleware runs on the edge and cannot access localStorage
-    // For proper admin protection, you would need to:
-    // 1. Store user role in an HTTP-only cookie after login
-    // 2. Read and verify the cookie here
-    // 3. Decode JWT token to check if user.role === 'ADMIN'
+  // Protected routes - require authentication
+  const protectedPaths = ['/dashboard', '/admin']
+  const isProtectedRoute = protectedPaths.some(path => pathname.startsWith(path))
 
-    // For now, we'll rely on client-side protection in the layout
-    // In production with real backend, uncomment the code below:
-
-    /*
+  if (isProtectedRoute) {
     const token = request.cookies.get('token')?.value
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url))
+    const mockUser = request.cookies.get('mock_user')?.value
+
+    // Check authentication: either real token or mock user (for development)
+    const isAuthenticated = token || mockUser
+
+    if (!isAuthenticated) {
+      // No authentication found - redirect to login
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
 
-    try {
-      // Verify JWT and check role
-      const payload = verifyJWT(token)
-      if (payload.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-    } catch {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-    */
+    // Token exists - backend will validate on API calls
+    // Admin-only routes checked in layout (client-side) since we need to decode JWT
   }
 
   return NextResponse.next()
@@ -38,6 +31,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/dashboard/:path*',
     '/admin/:path*',
   ],
 }

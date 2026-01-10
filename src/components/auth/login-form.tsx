@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,6 +24,8 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/dashboard'
   const { login, isLoading, error, clearError } = useAuthViewModel()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
@@ -53,7 +55,7 @@ export function LoginForm() {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       })
-      router.push('/dashboard')
+      router.push(redirect)
     } else {
       toast({
         variant: 'destructive',
