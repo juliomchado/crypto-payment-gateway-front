@@ -88,7 +88,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
 
   const handleLogout = async () => {
     await logout()
-    router.push('/login')
+    router.push('/')
   }
 
   return (
@@ -105,7 +105,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
-            <span className="font-semibold">CryptoGateway</span>
+            <span className="font-semibold">MangoPay</span>
           </Link>
         )}
         <Button

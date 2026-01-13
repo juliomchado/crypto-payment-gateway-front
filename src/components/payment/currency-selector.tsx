@@ -7,8 +7,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { CryptoIcon } from '@/components/ui/crypto-icon'
-import { NETWORK_NAMES } from '@/models/mock-data'
-import type { StoreCurrency } from '@/models/types'
+import { NETWORK_NAMES, type StoreCurrency } from '@/models/types'
 
 interface CurrencySelectorProps {
   currencies: StoreCurrency[]

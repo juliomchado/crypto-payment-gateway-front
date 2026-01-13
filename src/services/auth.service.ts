@@ -1,6 +1,4 @@
-import { CONFIG } from '@/lib/config'
 import { api } from './api'
-import { MOCK_USER, MOCK_MERCHANT_USER, MOCK_ADMIN_USER } from '@/models/mock-data'
 import type { User, ApiResponse } from '@/models/types'
 
 export interface LoginCredentials {
@@ -14,7 +12,7 @@ export interface RegisterData {
   lastName: string
   password: string
   country?: string
-  language?: string  // Default: 'en'
+  language?: string
 }
 
 export interface ForgotPasswordData {
@@ -22,12 +20,12 @@ export interface ForgotPasswordData {
 }
 
 export interface ResetPasswordData {
-  token: string      // 6 character verification token
-  password: string   // 8+ chars, uppercase, lowercase, number, special char
+  token: string
+  password: string
 }
 
 export interface VerifyEmailData {
-  token: string      // 6 character verification token
+  token: string
 }
 
 export interface AuthResponse {
@@ -36,102 +34,66 @@ export interface AuthResponse {
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-
-      // Check merchant account
-      if (credentials.email === 'merchant@cryptogateway.com' && credentials.password === 'password') {
-        return { user: MOCK_MERCHANT_USER }
-      }
-
-      // Check admin account
-      if (credentials.email === 'admin@cryptogateway.com' && credentials.password === 'admin123') {
-        return { user: MOCK_ADMIN_USER }
-      }
-
-      throw { message: 'Invalid credentials', statusCode: 401 }
+    interface BackendLoginResponse {
+      user: User
+      token: string
     }
-    return api.post<AuthResponse>('/auth/login', credentials)
+    const response = await api.post<ApiResponse<BackendLoginResponse>>('/auth/login', credentials)
+    const userData = response.data.user
+
+    // Force MERCHANT role if user has a merchant record
+    if (userData && (userData.merchant || userData.merchantId)) {
+      userData.role = 'MERCHANT'
+    } else if (userData && !userData.role) {
+      userData.role = 'USER'
+    }
+
+    return { user: userData }
   }
 
   async register(data: RegisterData): Promise<ApiResponse<User>> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return {
-        data: {
-          ...MOCK_USER,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          country: data.country,
-          language: data.language || 'en',
-        },
-        message: 'Registration successful. Please verify your email.',
-      }
-    }
     return api.post<ApiResponse<User>>('/auth/register', data)
   }
 
   async logout(): Promise<void> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return
-    }
     return api.post('/auth/logout')
   }
 
   async forgotPassword(email: string): Promise<ApiResponse<null>> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return { data: null, message: 'Password reset email sent' }
-    }
     return api.post<ApiResponse<null>>('/auth/forgot-password', { email })
   }
 
   async resetPassword(data: ResetPasswordData): Promise<ApiResponse<null>> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return { data: null, message: 'Password reset successful' }
-    }
     return api.post<ApiResponse<null>>('/auth/reset-password', data)
   }
 
   async verifyEmail(data: VerifyEmailData): Promise<ApiResponse<null>> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return { data: null, message: 'Email verified successfully' }
-    }
     return api.post<ApiResponse<null>>('/auth/verify-email', data)
   }
 
   async getCurrentUser(): Promise<User | null> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay(200)
-      // Load user from localStorage for persistent session
-      if (typeof window !== 'undefined') {
-        const storedUser = localStorage.getItem('mock_user')
-        if (storedUser) {
-          try {
-            return JSON.parse(storedUser) as User
-          } catch {
-            // Invalid stored data, clear it
-            localStorage.removeItem('mock_user')
-            return null
-          }
-        }
-      }
-      return null
-    }
     try {
       const response = await api.get<ApiResponse<User>>('/auth/me')
-      return response.data
+      const userData = response.data
+
+      if (!userData || !userData.email) {
+        return null
+      }
+
+      // Infer role and ensure merchantId is populated if merchant data exists
+      if (userData.merchant) {
+        userData.merchantId = userData.merchantId || userData.merchant.id
+        userData.role = 'MERCHANT'
+      } else if (userData.merchantId) {
+        userData.role = 'MERCHANT'
+      } else if (!userData.role) {
+        userData.role = 'USER'
+      }
+
+      return userData
     } catch {
       return null
     }
-  }
-
-  private simulateDelay(ms: number = 500): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 }
 

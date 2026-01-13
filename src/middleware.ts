@@ -8,6 +8,17 @@ export function middleware(request: NextRequest) {
   const protectedPaths = ['/dashboard', '/admin']
   const isProtectedRoute = protectedPaths.some(path => pathname.startsWith(path))
 
+  // Auth routes - redirect to dashboard if already authenticated
+  const authPaths = ['/login', '/register', '/forgot-password', '/reset-password']
+  const isAuthRoute = authPaths.some(path => pathname === path)
+
+  if (isAuthRoute) {
+    const token = request.cookies.get('token')?.value
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
   if (isProtectedRoute) {
     // In production: only check JWT cookie
     // In development with MOCK: skip middleware check (handled client-side)
@@ -35,5 +46,9 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/admin/:path*',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
   ],
 }

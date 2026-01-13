@@ -12,7 +12,7 @@ export default function AuthLayout({
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <span className="text-xl font-bold text-primary-foreground">C</span>
           </div>
-          <h1 className="mt-4 text-2xl font-bold">CryptoGateway</h1>
+          <h1 className="mt-4 text-2xl font-bold">MangoPay</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Accept crypto payments with ease
           </p>

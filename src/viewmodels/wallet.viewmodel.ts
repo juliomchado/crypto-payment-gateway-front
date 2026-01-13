@@ -30,7 +30,7 @@ export const useWalletViewModel = create<WalletViewModel>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const wallets = await walletService.getWallets(merchantId)
-      set({ wallets, isLoading: false })
+      set({ wallets: Array.isArray(wallets) ? wallets : [], isLoading: false })
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to fetch wallets', isLoading: false })
@@ -77,9 +77,9 @@ export const useWalletViewModel = create<WalletViewModel>((set, get) => ({
         selectedWallet:
           state.selectedWallet?.id === walletId
             ? {
-                ...state.selectedWallet,
-                nextAddressIndex: (state.selectedWallet.nextAddressIndex || 0) + 1,
-              }
+              ...state.selectedWallet,
+              nextAddressIndex: (state.selectedWallet.nextAddressIndex || 0) + 1,
+            }
             : state.selectedWallet,
         isLoading: false,
       }))

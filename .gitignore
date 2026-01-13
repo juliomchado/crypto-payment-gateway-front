@@ -60,3 +60,11 @@ next-env.d.ts
 # Misc
 *.pem
 *.key
+
+# Claude Code temporary documentation
+.claude/
+# *.md
+!README.md
+!CONTRIBUTING.md
+!CHANGELOG.md
+!docs/

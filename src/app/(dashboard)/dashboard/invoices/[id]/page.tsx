@@ -12,7 +12,7 @@ import { StatusBadge } from '@/components/invoices/status-badge'
 import { useInvoiceViewModel } from '@/viewmodels/invoice.viewmodel'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency, formatDateTime, shortenAddress, copyToClipboard } from '@/lib/utils'
-import { NETWORK_NAMES } from '@/models/mock-data'
+import { NETWORK_NAMES } from '@/models/types'
 
 export default function InvoiceDetailPage() {
   const params = useParams()
@@ -75,7 +75,7 @@ export default function InvoiceDetailPage() {
             Created {formatDateTime(selectedInvoice.createdAt)}
           </p>
         </div>
-        <StatusBadge status={selectedInvoice.paymentStatus} />
+        <StatusBadge status={selectedInvoice.status} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -138,13 +138,11 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {(selectedInvoice.networkId || selectedInvoice.network) && (
+            {selectedInvoice.networkId && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Network</span>
                 <span className="text-sm font-medium">
-                  {selectedInvoice.network?.title ||
-                   (selectedInvoice.networkId && NETWORK_NAMES[selectedInvoice.networkId]) ||
-                   'Unknown'}
+                  {NETWORK_NAMES[selectedInvoice.networkId] || 'Unknown'}
                 </span>
               </div>
             )}
@@ -158,7 +156,7 @@ export default function InvoiceDetailPage() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
-              <StatusBadge status={selectedInvoice.paymentStatus} />
+              <StatusBadge status={selectedInvoice.status} />
             </div>
 
             {selectedInvoice.paymentAddress && (
@@ -196,16 +194,7 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {selectedInvoice.paidAt && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Paid At</span>
-                <span className="text-sm font-medium">
-                  {formatDateTime(selectedInvoice.paidAt)}
-                </span>
-              </div>
-            )}
-
-            {selectedInvoice.paymentStatus === 'PENDING' && (
+            {selectedInvoice.status === 'PENDING' && (
               <div className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
                 <p className="text-sm font-medium">Awaiting Payment</p>
                 <p className="mt-1 text-xs">
@@ -214,7 +203,7 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
-            {selectedInvoice.paymentStatus === 'CONFIRMED' && (
+            {selectedInvoice.status === 'CONFIRMED' && (
               <div className="rounded-lg bg-success/10 p-3 text-sm text-success">
                 <p className="text-sm font-medium">Payment Confirmed</p>
                 <p className="mt-1 text-xs">

@@ -30,7 +30,7 @@ import type { Store, ApiKeyType } from '@/models/types'
 const apiKeySchema = z.object({
   storeId: z.string().min(1, 'Please select a store'),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be at most 100 characters'),
-  type: z.enum(['PAYMENT', 'PAYOUT'], { required_error: 'Please select a key type' }),
+  type: z.enum(['PAYMENT', 'PAYOUT'], { required_error: 'Please select a key type' }),  // ✅ FIXED: Removed FULL_ACCESS
 })
 
 type ApiKeyFormData = z.infer<typeof apiKeySchema>

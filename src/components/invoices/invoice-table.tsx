@@ -26,7 +26,7 @@ const statusConfig: Record<
   { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' }
 > = {
   PENDING: { label: 'Pending', variant: 'secondary' },
-  DETECTING: { label: 'Detecting', variant: 'warning' },
+  DETECTED: { label: 'Detected', variant: 'warning' },
   CONFIRMING: { label: 'Confirming', variant: 'warning' },
   CONFIRMED: { label: 'Confirmed', variant: 'success' },
   OVERPAID: { label: 'Overpaid', variant: 'warning' },
@@ -38,7 +38,7 @@ const statusConfig: Record<
   CANCELLED: { label: 'Cancelled', variant: 'destructive' },
 }
 
-export function InvoiceTable({ invoices, isLoading }: InvoiceTableProps) {
+export function InvoiceTable({ invoices = [], isLoading }: InvoiceTableProps) {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -72,8 +72,8 @@ export function InvoiceTable({ invoices, isLoading }: InvoiceTableProps) {
         </TableHeader>
         <TableBody>
           {invoices.map((invoice) => {
-            const status = statusConfig[invoice.paymentStatus] || {
-              label: invoice.paymentStatus || 'Unknown',
+            const status = statusConfig[invoice.status] || {
+              label: invoice.status || 'Unknown',
               variant: 'secondary' as const,
             }
             return (

@@ -4,7 +4,7 @@ import {
   type CreateMerchantData,
   type UpdateMerchantData,
 } from '@/services/merchant.service'
-import type { Merchant } from '@/models/types'
+import type { Merchant, MerchantStatus } from '@/models/types'
 
 interface MerchantState {
   merchant: Merchant | null
@@ -19,6 +19,7 @@ interface MerchantActions {
   fetchMerchants: () => Promise<void>
   createMerchant: (data: CreateMerchantData) => Promise<Merchant | null>
   updateMerchant: (id: string, data: UpdateMerchantData) => Promise<Merchant | null>
+  updateMerchantStatus: (id: string, status: MerchantStatus) => Promise<Merchant | null>
   clearError: () => void
 }
 
@@ -44,7 +45,7 @@ export const useMerchantViewModel = create<MerchantViewModel>((set) => ({
   fetchCurrentMerchant: async (): Promise<void> => {
     set({ isLoading: true, error: null })
     try {
-      const merchant = await merchantService.getCurrentMerchant()
+      const merchant = await merchantService.getCurrent()
       set({ merchant, isLoading: false })
     } catch (err) {
       const error = err as { message?: string }
@@ -70,8 +71,11 @@ export const useMerchantViewModel = create<MerchantViewModel>((set) => ({
       set({ merchant, isLoading: false })
       return merchant
     } catch (err) {
-      const error = err as { message?: string }
-      set({ error: error.message || 'Failed to create merchant', isLoading: false })
+      const error = err as { message?: string; statusCode?: number }
+      const errorMessage = error.statusCode
+        ? `${error.statusCode}: ${error.message || 'Failed to create merchant'}`
+        : error.message || 'Failed to create merchant'
+      set({ error: errorMessage, isLoading: false })
       return null
     }
   },
@@ -85,6 +89,24 @@ export const useMerchantViewModel = create<MerchantViewModel>((set) => ({
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to update merchant', isLoading: false })
+      return null
+    }
+  },
+
+  updateMerchantStatus: async (id: string, status: MerchantStatus): Promise<Merchant | null> => {
+    set({ isLoading: true, error: null })
+    try {
+      const merchant = await merchantService.updateMerchantStatus(id, status)
+      // Update in merchants array
+      set((state) => ({
+        merchant,
+        merchants: state.merchants.map(m => m.id === id ? merchant : m),
+        isLoading: false
+      }))
+      return merchant
+    } catch (err) {
+      const error = err as { message?: string }
+      set({ error: error.message || 'Failed to update merchant status', isLoading: false })
       return null
     }
   },

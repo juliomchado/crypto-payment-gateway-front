@@ -28,13 +28,13 @@ export function StoreSelector() {
 
   // Auto-select "All Stores" if none selected
   useEffect(() => {
-    if (!activeStoreId && stores.length > 0) {
+    if (!activeStoreId && stores && stores.length > 0) {
       setActiveStoreId(ALL_STORES_VALUE)
     }
   }, [activeStoreId, stores, setActiveStoreId])
 
-  // Don't show for admin users
-  if (user?.role !== 'MERCHANT' || stores.length === 0) {
+  // Don't show for admin users or if no stores
+  if (user?.role !== 'MERCHANT' || !stores || stores.length === 0) {
     return null
   }
 

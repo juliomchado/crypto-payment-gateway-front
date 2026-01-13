@@ -17,8 +17,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
+import { useMerchant } from '@/contexts/merchant.context'
 import { useToast } from '@/hooks/use-toast'
-import { MOCK_MERCHANT } from '@/models/mock-data'
 import type { Store } from '@/models/types'
 
 // Default Exchange Rate Source ID for API compatibility
@@ -37,6 +37,7 @@ const generateSlug = (name: string): string => {
 export default function StoresPage() {
   const { stores, isLoading, fetchStores, createStore, updateStore, deleteStore } =
     useStoreViewModel()
+  const { merchant } = useMerchant()
   const { toast } = useToast()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
@@ -54,13 +55,22 @@ export default function StoresPage() {
     urlReturn?: string
     urlSuccess?: string
   }) => {
+    if (!merchant) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Merchant information not available.',
+      })
+      return
+    }
+
     setIsSubmitting(true)
     const store = await createStore({
       name: data.name,
       slug: generateSlug(data.name),
-      merchantId: MOCK_MERCHANT.id,
+      merchantId: merchant.id,
       exchangeRateSourceId: DEFAULT_EXCHANGE_RATE_SOURCE_ID,
-      isActive: data.isActive,
+      status: data.isActive ? 'ACTIVE' : 'INACTIVE',
       urlCallback: data.urlCallback,
       urlReturn: data.urlReturn,
       urlSuccess: data.urlSuccess,
@@ -88,7 +98,7 @@ export default function StoresPage() {
     setIsSubmitting(true)
     const success = await updateStore(editingStore.id, {
       name: data.name,
-      isActive: data.isActive,
+      status: data.isActive ? 'ACTIVE' : 'INACTIVE',
       urlCallback: data.urlCallback,
       urlReturn: data.urlReturn,
       urlSuccess: data.urlSuccess,
@@ -152,7 +162,7 @@ export default function StoresPage() {
             <Skeleton key={i} className="h-[180px] rounded-xl" />
           ))}
         </div>
-      ) : stores.length === 0 ? (
+      ) : !stores || stores.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
           <p className="text-muted-foreground">No stores yet</p>
           <Button className="mt-4" onClick={openCreateForm}>

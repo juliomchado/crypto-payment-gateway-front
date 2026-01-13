@@ -67,7 +67,7 @@ export default function StoreCurrenciesPage() {
 
   // Filter out currencies already added to the store
   const availableToAdd = availableCurrencies.filter(
-    (currency) => !storeCurrencies.some((sc) => sc.currencyId === currency.id)
+    (currency) => !Array.isArray(storeCurrencies) || !storeCurrencies.some((sc) => sc.currencyId === currency.id)
   )
 
   const handleAddCurrency = async () => {
@@ -145,7 +145,7 @@ export default function StoreCurrenciesPage() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : storeCurrencies.length === 0 ? (
+          ) : !Array.isArray(storeCurrencies) || storeCurrencies.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
               <p className="text-muted-foreground">No currencies configured yet</p>
               <Button className="mt-4" onClick={() => setIsAddDialogOpen(true)}>

@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { Toaster } from '@/components/ui/toaster'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 import { ActiveStoreProvider } from '@/contexts/active-store.context'
+import { MerchantProvider } from '@/contexts/merchant.context'
 
 export default function DashboardLayout({
   children,
@@ -14,6 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, isAuthenticated, isLoading, checkAuth } = useAuthViewModel()
 
   useEffect(() => {
@@ -24,8 +26,8 @@ export default function DashboardLayout({
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/login')
-      } else if (user && user.role === 'USER') {
-        // USER role doesn't have dashboard access (they only make payments)
+      } else if (user && user.role === 'USER' && pathname !== '/setup') {
+        // USER role doesn't have dashboard access, except for the setup page
         router.push('/')
       }
     }
@@ -44,19 +46,21 @@ export default function DashboardLayout({
   }
 
   return (
-    <ActiveStoreProvider>
-      <div className="flex h-screen overflow-hidden">
-        <div className="hidden lg:block">
-          <Sidebar />
+    <MerchantProvider>
+      <ActiveStoreProvider>
+        <div className="flex h-screen overflow-hidden">
+          <div className="hidden lg:block">
+            <Sidebar />
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Header />
+            <main className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6">
+              {children}
+            </main>
+          </div>
+          <Toaster />
         </div>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6">
-            {children}
-          </main>
-        </div>
-        <Toaster />
-      </div>
-    </ActiveStoreProvider>
+      </ActiveStoreProvider>
+    </MerchantProvider>
   )
 }

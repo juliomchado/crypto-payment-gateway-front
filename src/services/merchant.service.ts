@@ -1,146 +1,101 @@
-import { CONFIG } from '@/lib/config'
 import { api } from './api'
-import { MOCK_MERCHANT } from '@/models/mock-data'
-import { generateId } from '@/lib/utils'
 import type { Merchant, ApiResponse, MerchantStatus } from '@/models/types'
 
-// Request DTOs matching backend API
 export interface CreateMerchantData {
-  merchantName: string            // 2-100 characters
-  businessType?: string           // Type of business
-  registrationNumber?: string     // Business registration number
-  taxId?: string                  // Tax ID/CNPJ/EIN (optional)
+  merchantName: string
+  businessType?: string
+  registrationNumber?: string
+  taxId?: string
 }
 
 export interface UpdateMerchantData {
-  merchantName?: string           // 2-100 characters
+  merchantName?: string
   businessType?: string
   registrationNumber?: string
   taxId?: string
 }
 
 export interface ListMerchantsQuery {
-  skip?: number                   // Default: 0
-  take?: number                   // 1-100, default: 20
+  skip?: number
+  take?: number
   isActive?: boolean
 }
 
 class MerchantService {
-  private mockMerchant: Merchant = { ...MOCK_MERCHANT }
-
   async getMerchants(query?: ListMerchantsQuery): Promise<Merchant[]> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      // In mock mode, user has only one merchant
-      const merchants = [this.mockMerchant]
-
-      if (query?.isActive !== undefined) {
-        // Filter by active status - APPROVED is considered active
-        return merchants.filter(m => query.isActive ? m.status === 'APPROVED' : m.status !== 'APPROVED')
-      }
-
-      return merchants
-    }
-
     const params = new URLSearchParams()
     if (query?.skip) params.append('skip', query.skip.toString())
     if (query?.take) params.append('take', query.take.toString())
     if (query?.isActive !== undefined) params.append('isActive', query.isActive.toString())
 
-    const response = await api.get<ApiResponse<Merchant[]>>(`/merchants?${params.toString()}`)
-    return response.data
+    interface BackendListResponse {
+      merchants: (Merchant & { name?: string })[]
+    }
+    const response = await api.get<ApiResponse<BackendListResponse>>(`/merchants?${params.toString()}`)
+    const items = response.data.merchants || []
+
+    return items.map(m => ({
+      ...m,
+      merchantName: m.merchantName || m.name
+    })) as Merchant[]
   }
 
   async getMerchant(id: string): Promise<Merchant> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      if (this.mockMerchant.id === id) {
-        return this.mockMerchant
-      }
-      throw { message: 'Merchant not found', statusCode: 404 }
-    }
-
-    const response = await api.get<ApiResponse<Merchant>>(`/merchants/${id}`)
-    return response.data
+    const response = await api.get<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}`)
+    const merchant = response.data
+    return {
+      ...merchant,
+      merchantName: merchant.merchantName || merchant.name
+    } as Merchant
   }
 
-  async getCurrentMerchant(): Promise<Merchant> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      return this.mockMerchant
+  async getCurrent(): Promise<Merchant | null> {
+    interface BackendListResponse {
+      merchants: (Merchant & { name?: string })[]
+    }
+    const response = await api.get<ApiResponse<BackendListResponse>>('/merchants')
+    const merchants = response.data.merchants
+
+    if (!merchants || merchants.length === 0) {
+      return null
     }
 
-    // Get merchants for current user and return the first one
-    const response = await api.get<ApiResponse<Merchant[]>>('/merchants')
-    if (response.data.length === 0) {
-      throw { message: 'No merchant found for current user', statusCode: 404 }
-    }
-    return response.data[0]
+    const merchant = merchants[0]
+    return {
+      ...merchant,
+      merchantName: merchant.merchantName || merchant.name
+    } as Merchant
   }
 
   async createMerchant(data: CreateMerchantData): Promise<Merchant> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-
-      const newMerchant: Merchant = {
-        id: generateId(),
-        userId: 'mock-user-id',
-        merchantName: data.merchantName,
-        businessType: data.businessType,
-        registrationNumber: data.registrationNumber,
-        taxId: data.taxId,
-        status: 'PENDING_APPROVAL',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      this.mockMerchant = newMerchant
-      return newMerchant
-    }
-
-    const response = await api.post<ApiResponse<Merchant>>('/merchants', data)
-    return response.data
+    const response = await api.post<ApiResponse<Merchant & { name?: string }>>('/merchants', data)
+    const merchant = response.data
+    return {
+      ...merchant,
+      merchantName: merchant.merchantName || merchant.name
+    } as Merchant
   }
 
   async updateMerchant(id: string, data: UpdateMerchantData): Promise<Merchant> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-
-      if (this.mockMerchant.id !== id) {
-        throw { message: 'Merchant not found', statusCode: 404 }
-      }
-
-      this.mockMerchant = {
-        ...this.mockMerchant,
-        ...data,
-        updatedAt: new Date().toISOString(),
-      }
-
-      return this.mockMerchant
-    }
-
-    const response = await api.patch<ApiResponse<Merchant>>(`/merchants/${id}`, data)
-    return response.data
+    const response = await api.patch<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}`, data)
+    const merchant = response.data
+    return {
+      ...merchant,
+      merchantName: merchant.merchantName || merchant.name
+    } as Merchant
   }
 
   async deleteMerchant(id: string): Promise<void> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-
-      if (this.mockMerchant.id !== id) {
-        throw { message: 'Merchant not found', statusCode: 404 }
-      }
-
-      // Backend typically archives instead of deleting
-      this.mockMerchant.status = 'ARCHIVED'
-      return
-    }
-
     await api.delete(`/merchants/${id}`)
   }
 
-  private simulateDelay(ms: number = 300): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+  async updateMerchantStatus(id: string, status: MerchantStatus): Promise<Merchant> {
+    const response = await api.patch<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}/status`, { status })
+    const merchant = response.data
+    return {
+      ...merchant,
+      merchantName: merchant.merchantName || merchant.name
+    } as Merchant
   }
 }
 

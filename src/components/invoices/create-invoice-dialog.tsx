@@ -120,15 +120,29 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
 
   const onSubmit = async (data: CreateInvoiceFormData) => {
     setIsSubmitting(true)
+    const selectedStore = stores?.find(s => s.id === data.storeId)
+    if (!selectedStore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please select a valid store.',
+      })
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       const invoice = await createInvoice({
-        storeId: data.storeId,
+        store: data.storeId,
         orderId: data.orderId,
-        amount: data.amount,
+        amount: data.amount.toString(),
         currency: data.currency,
-        title: data.title || undefined,
-        description: data.description || undefined,
-        customerEmail: data.customerEmail || undefined,
+        title: data.title || `Invoice for ${data.amount} ${data.currency}`,
+        description: data.description || `Order ${data.orderId}`,
+        fromReferralCode: null,
+        urlCallback: selectedStore.urlCallback || 'https://example.com/callback',
+        urlSuccess: selectedStore.urlSuccess || 'https://example.com/success',
+        urlReturn: selectedStore.urlReturn || 'https://example.com/return',
         lifespan: Number(data.lifespan),
         isPaymentMultiple: data.isPaymentMultiple,
         accuracyPaymentPercent: data.accuracyPaymentPercent ? Number(data.accuracyPaymentPercent) : undefined,
@@ -251,7 +265,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                       <SelectValue placeholder="Select a store" />
                     </SelectTrigger>
                     <SelectContent>
-                      {stores.map((store) => (
+                      {(stores || []).map((store) => (
                         <SelectItem key={store.id} value={store.id}>
                           {store.name}
                         </SelectItem>

@@ -14,7 +14,7 @@ import { useWebhookViewModel } from '@/viewmodels/webhook.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
 import { useActiveStore } from '@/contexts/active-store.context'
 import { useToast } from '@/hooks/use-toast'
-import type { WebhookEvent, WebhookEventStatus } from '@/models/types'
+import type { WebhookEvent, WebhookDeliveryStatus } from '@/models/types'
 
 export default function WebhooksPage() {
   const searchParams = useSearchParams()
@@ -24,7 +24,7 @@ export default function WebhooksPage() {
   const { webhookEvents, isLoading, fetchWebhookEvents, retryWebhookEvent } =
     useWebhookViewModel()
   const { stores, fetchStores } = useStoreViewModel()
-  const [statusFilter, setStatusFilter] = useState<WebhookEventStatus | 'ALL'>('ALL')
+  const [statusFilter, setStatusFilter] = useState<WebhookDeliveryStatus | 'ALL'>('ALL')
 
   // Use store from URL param, or header selector, or first available store
   const effectiveStoreId = storeIdParam || (!isAllStores ? activeStoreId : stores[0]?.id)
@@ -75,7 +75,7 @@ export default function WebhooksPage() {
         )}
 
         <div className="w-48">
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as WebhookEventStatus | 'ALL')}>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as WebhookDeliveryStatus | 'ALL')}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>

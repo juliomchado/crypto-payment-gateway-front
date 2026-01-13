@@ -12,7 +12,7 @@ interface WebhookEventDetailProps {
 
 const eventLabels: Record<string, string> = {
   'payment.created': 'Payment Created',
-  'payment.detecting': 'Payment Detecting',
+  'payment.detected': 'Payment Detected',
   'payment.confirming': 'Payment Confirming',
   'payment.confirmed': 'Payment Confirmed',
   'payment.overpaid': 'Payment Overpaid',
@@ -36,7 +36,7 @@ export function WebhookEventDetail({ event }: WebhookEventDetailProps) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Event Type</p>
-              <p className="text-sm">{eventLabels[event.event] || event.event}</p>
+              <p className="text-sm">{eventLabels[event.eventType] || event.eventType}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Status</p>
@@ -58,12 +58,12 @@ export function WebhookEventDetail({ event }: WebhookEventDetailProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Webhook URL</p>
-              <p className="text-sm truncate">{event.url}</p>
+              <p className="text-sm truncate">{event.endpointUrl}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Attempts</p>
               <p className="text-sm">
-                {event.attempts} / {event.maxAttempts}
+                {event.attemptCount} / {event.maxRetries}
               </p>
             </div>
             <div>
@@ -76,10 +76,10 @@ export function WebhookEventDetail({ event }: WebhookEventDetailProps) {
                 <p className="text-sm">{formatDateTime(event.deliveredAt)}</p>
               </div>
             )}
-            {event.failedAt && (
+            {event.lastAttemptAt && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Failed At</p>
-                <p className="text-sm">{formatDateTime(event.failedAt)}</p>
+                <p className="text-sm">{formatDateTime(event.lastAttemptAt)}</p>
               </div>
             )}
             {event.nextRetryAt && (
@@ -111,12 +111,12 @@ export function WebhookEventDetail({ event }: WebhookEventDetailProps) {
         </CardHeader>
         <CardContent>
           <pre className="rounded-lg bg-muted p-4 text-xs overflow-x-auto">
-            <code>{JSON.stringify(event.payload, null, 2)}</code>
+            <code>{JSON.stringify(event.requestPayload, null, 2)}</code>
           </pre>
         </CardContent>
       </Card>
 
-      {event.response && (
+      {event.statusCode && (
         <Card>
           <CardHeader>
             <CardTitle>Response</CardTitle>
@@ -125,15 +125,15 @@ export function WebhookEventDetail({ event }: WebhookEventDetailProps) {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Status Code</p>
-              <Badge variant={event.response.status === 200 ? 'success' : 'destructive'}>
-                {event.response.status}
+              <Badge variant={event.statusCode === 200 ? 'success' : 'destructive'}>
+                {event.statusCode}
               </Badge>
             </div>
             <Separator />
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Response Body</p>
               <pre className="rounded-lg bg-muted p-4 text-xs overflow-x-auto">
-                <code>{event.response.body}</code>
+                <code>{event.responseBody}</code>
               </pre>
             </div>
           </CardContent>

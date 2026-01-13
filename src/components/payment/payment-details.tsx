@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { copyToClipboard } from '@/lib/utils'
-import { NETWORK_NAMES } from '@/models/mock-data'
+import { NETWORK_NAMES } from '@/models/types'
 
 interface PaymentDetailsProps {
   amount: string

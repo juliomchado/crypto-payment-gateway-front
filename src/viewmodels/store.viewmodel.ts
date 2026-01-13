@@ -179,7 +179,11 @@ export const useStoreViewModel = create<StoreViewModel>((set, get) => ({
   configureCurrency: async (storeId: string, data: ConfigureCurrencyData): Promise<boolean> => {
     set({ isLoading: true, error: null })
     try {
-      const storeCurrency = await storeService.configureCurrency(storeId, data)
+      const storeCurrency = await storeService.configureCurrency(storeId, {
+        ...data,
+        minAmount: data.minAmount,
+        maxAmount: data.maxAmount,
+      })
       set((state) => {
         const existingIndex = state.storeCurrencies.findIndex(
           (sc) => sc.currencyId === data.currencyId

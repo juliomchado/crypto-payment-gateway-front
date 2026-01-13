@@ -18,8 +18,14 @@ export default function WalletsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   useEffect(() => {
-    fetchWallets()
-  }, [fetchWallets])
+    if (!user) return
+
+    if (user.merchantId) {
+      fetchWallets(user.merchantId)
+    } else {
+      fetchWallets()
+    }
+  }, [user?.id, user?.merchantId, fetchWallets])
 
   const handleCopy = async (address: string) => {
     try {
@@ -37,9 +43,8 @@ export default function WalletsPage() {
     }
   }
 
-  // Merchants cannot manually create wallets
-  // Master wallet is created automatically when merchant is created
-  // Child addresses are derived automatically when creating invoices
+  // Allow only ADMINs to create wallets manually
+  // Merchants have wallets created automatically during setup
   const canCreateWallet = user?.role === 'ADMIN'
 
   return (

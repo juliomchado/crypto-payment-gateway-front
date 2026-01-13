@@ -133,12 +133,12 @@ export default function StoreDetailsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Payment Window</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Store Status</CardTitle>
+            <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {store.defaultPaymentWindow ? Math.round(store.defaultPaymentWindow / 60) : 60} min
+            <div className="text-2xl font-bold capitalize">
+              {store.status.toLowerCase()}
             </div>
           </CardContent>
         </Card>
@@ -165,9 +165,9 @@ export default function StoreDetailsPage() {
               <span className="col-span-2 text-sm">{store.defaultCurrency || 'Not set'}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Payment Window:</span>
-              <span className="col-span-2 text-sm">
-                {store.defaultPaymentWindow ? `${store.defaultPaymentWindow}s` : 'Not set'}
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
+              <span className="col-span-2 text-sm capitalize">
+                {store.status.toLowerCase()}
               </span>
             </div>
           </CardContent>

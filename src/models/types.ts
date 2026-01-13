@@ -1,4 +1,10 @@
 // ==========================================
+// TYPES SYNCHRONIZED WITH BACKEND
+// Last updated: 2026-01-10
+// Backend Prisma Schema version: latest
+// ==========================================
+
+// ==========================================
 // USER & AUTH TYPES
 // ==========================================
 
@@ -22,6 +28,10 @@ export interface User {
   status: UserStatus
   emailVerifiedAt?: string
   kycCompletedAt?: string
+  ipAddress?: string
+  userAgent?: string
+  merchantId?: string
+  merchant?: Merchant
   createdAt: string
   updatedAt: string
 }
@@ -68,6 +78,7 @@ export type NetworkType =
   | 'BASE'
   | 'OPTIMISM'
   | 'POLYGON'
+  | 'AVALANCHE'  // ✅ ADDED
   | 'BINANCE_SMART_CHAIN'
   | 'SOLANA'
   | 'TRON'
@@ -84,8 +95,14 @@ export type NetworkStandard =
   | 'NATIVE'
   | 'BITCOIN'
   | 'LIGHTNING'
+  | 'LITECOIN'  // ✅ ADDED
+  | 'XRP'       // ✅ ADDED
+  | 'DOGECOIN'  // ✅ ADDED
 
-export type NetworkStatus = 'ACTIVE' | 'INACTIVE'
+export type NetworkStatus =
+  | 'ACTIVE'
+  | 'MAINTENANCE'  // ✅ CHANGED from INACTIVE
+  | 'DISABLED'     // ✅ ADDED
 
 export interface Network {
   id: string
@@ -94,7 +111,12 @@ export interface Network {
   type: NetworkType
   standard: NetworkStandard
   rpcUrl?: string
+  rpcUrlBackup?: string      // ✅ ADDED
+  rpcUrlTestNet?: string     // ✅ ADDED
+  wsUrl?: string             // ✅ ADDED
   explorerUrl?: string
+  explorerUrlTestNet?: string // ✅ ADDED
+  derivationPath: string     // ✅ ADDED (required)
   confirmations: number
   status: NetworkStatus
   createdAt: string
@@ -112,13 +134,13 @@ export type CurrencyStatus = 'ACTIVE' | 'INACTIVE' | 'DEPRECATED'
 export interface Currency {
   id: string
   symbol: string
-  title: string           // Backend uses 'title', not 'name'
+  title: string
   type: CurrencyType
   decimals: number
   native: boolean
-  merchantPay: boolean    // Can customer pay in this currency
-  merchantReceive: boolean // Can merchant receive settlement
-  merchantPrice: boolean  // Can merchant set prices
+  merchantPay: boolean
+  merchantReceive: boolean
+  merchantPrice: boolean
   status: CurrencyStatus
   contractAddress?: string
   iconUrl?: string
@@ -144,7 +166,7 @@ export interface Store {
   exchangeRateSourceId: string
   status: StoreStatus
   defaultCurrency?: string
-  defaultPaymentWindow: number  // seconds, 60-86400
+  // REMOVED: defaultPaymentWindow - doesn't exist in backend
   feePercent: number
   feeFixed: number
   feeCurrency?: string
@@ -152,7 +174,7 @@ export interface Store {
   urlReturn?: string
   urlSuccess?: string
   supportedCurrencies?: StoreCurrency[]
-  invoiceCount?: number  // Computed field
+  invoiceCount?: number
   createdAt: string
   updatedAt: string
 }
@@ -164,10 +186,22 @@ export interface StoreCurrency {
   currencyId: string
   currency: Currency
   isEnabled: boolean
-  minAmount: string  // Decimal as string
-  maxAmount: string  // Decimal as string
+  minAmount: string
+  maxAmount: string
   createdAt: string
   updatedAt: string
+}
+
+// ==========================================
+// NETWORK CONSTANTS
+// ==========================================
+
+export const NETWORK_NAMES: Record<string, string> = {
+  ethereum: 'Ethereum',
+  bsc: 'BSC',
+  polygon: 'Polygon',
+  bitcoin: 'Bitcoin',
+  solana: 'Solana',
 }
 
 // ==========================================
@@ -176,7 +210,7 @@ export interface StoreCurrency {
 
 export type PaymentStatus =
   | 'PENDING'
-  | 'DETECTING'
+  | 'DETECTED'    // ✅ CHANGED from DETECTING
   | 'CONFIRMING'
   | 'CONFIRMED'
   | 'OVERPAID'
@@ -187,14 +221,11 @@ export type PaymentStatus =
   | 'REFUNDED'
   | 'CANCELLED'
 
-// Legacy status type for backward compatibility
-export type InvoiceStatus = PaymentStatus
-
 export interface InvoiceRate {
   currencyId: string
   networkId: string
-  rate: string          // Decimal as string for precision
-  payerAmount: string   // Amount in crypto with 18 decimals precision
+  rate: string
+  payerAmount: string
 }
 
 export interface Invoice {
@@ -202,83 +233,66 @@ export interface Invoice {
   storeId: string
   store?: Store
   orderId: string
-  amount: string              // Decimal as string
-  currency: string            // ISO currency code (USD, EUR, etc)
+  amount: string  // Decimal as string
+  currency: string
   title?: string
   description?: string
-
-  // Payment details
-  networkId?: string
-  network?: Network
-  addressId?: string
-  paymentAddress?: string
-
-  // Crypto payment info
-  payer_currency?: string     // Cryptocurrency symbol
-  payer_amount?: string       // Amount to pay in crypto
-  payer_amount_usd?: string   // Crypto amount in USD
-  payment_amount?: string     // Actual amount received
-  payment_amount_fiat?: string // Received amount in fiat
-
-  // Merchant settlement
-  merchantAmount?: string
-  merchantCurrency?: string
-  exchangeRate?: string
-
-  // Status
-  paymentStatus: PaymentStatus
+  customerEmail?: string
+  status: PaymentStatus  // ✅ CHANGED: backend uses 'status', not 'paymentStatus'
   isFinal: boolean
   isPaymentMultiple: boolean
-  accuracyPaymentPercent: number
-  subtract: number            // Commission percentage charged to client
-
-  // URLs
+  accuracyPaymentPercent: number  // 0-5 (not 0-100!)
+  subtract: number
+  additionalData?: Record<string, unknown>
+  fromReferralCode?: string
   urlCallback?: string
   urlReturn?: string
   urlSuccess?: string
-
-  // Metadata
-  additionalData?: Record<string, unknown>
-  fromReferralCode?: string
-  customerEmail?: string
-
-  // Timestamps
+  rates?: InvoiceRate[]
+  // Payment address fields (set after generating address)
+  networkId?: string
+  paymentAddress?: string
+  payer_currency?: string
+  payer_amount?: string
+  payer_amount_usd?: string
+  // Payment tracking fields from backend
+  payment_amount?: string  // ✅ ADDED: Actual amount paid
+  payment_amount_fiat?: string  // ✅ ADDED: Fiat equivalent
+  merchantAmount?: string  // ✅ ADDED: Amount merchant receives
+  merchantCurrency?: string  // ✅ ADDED: Merchant's currency
+  exchangeRate?: string  // ✅ ADDED: Rate used for conversion
+  paidAt?: string  // ✅ ADDED: When payment was detected
+  confirmedAt?: string  // ✅ ADDED: When payment was confirmed
+  // Legacy fields for backward compatibility
+  cryptoCurrency?: string
+  cryptoAmount?: string
+  exchangeRateSourceId?: string
   expiresAt: string
-  paidAt?: string
-  confirmedAt?: string
   createdAt: string
   updatedAt: string
-
-  // Exchange rates snapshot
-  rates?: InvoiceRate[]
-
-  // Legacy fields for backward compatibility
-  cryptoAmount?: string
-  cryptoCurrency?: string
-  status?: PaymentStatus  // Alias for paymentStatus
 }
 
 // ==========================================
-// WALLET TYPES
+// WALLET & ADDRESS TYPES
 // ==========================================
 
-export type WalletChainType = 'EVM' | 'BITCOIN' | 'SOLANA'
+export type WalletType = 'HOT' | 'COLD'
 
-// Alias for wallet service compatibility
-export type ChainType = WalletChainType
+export type WalletStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
 
-export type WalletType = 'MASTER' | 'HOT' | 'COLD' | 'FEE' | 'SETTLEMENT'
-
-export type WalletStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'DRAINED'
+// ✅ IMPORTANT: Backend Prisma uses NetworkStandard for chainType
+// But validation schemas use this simplified enum
+export type ChainType = 'EVM' | 'BITCOIN' | 'SOLANA'
 
 export interface Wallet {
   id: string
   merchantId: string
   merchant?: Merchant
-  chainType: WalletChainType
+  chainType: ChainType
   type: WalletType
   status: WalletStatus
   publicKey: string
+  // privateKey and mnemonic are NEVER sent to frontend (security)
   derivationPath: string
   nextAddressIndex: number
   addresses?: Address[]
@@ -286,20 +300,21 @@ export interface Wallet {
   updatedAt: string
 }
 
+// ✅ FIXED: Match backend Prisma enum exactly
 export type AddressStatus =
-  | 'AVAILABLE'
-  | 'ASSIGNED'
-  | 'USED'
-  | 'EXPIRED'
-  | 'COMPROMISED'
+  | 'AVAILABLE'   // Address generated but not assigned
+  | 'ASSIGNED'    // Assigned to an invoice (was 'RESERVED')
+  | 'USED'        // Payment received (was 'IN_USE')
+  | 'EXPIRED'     // Invoice expired without payment
+  | 'COMPROMISED' // Security issue (was 'ARCHIVED')
 
 export interface Address {
   id: string
   address: string
   derivationIndex: number
   status: AddressStatus
-  totalReceived: string
-  totalWithdrawn: string
+  totalReceived: string  // Decimal as string
+  totalWithdrawn: string // Decimal as string
   masterWalletId: string
   masterWallet?: Wallet
   invoiceId?: string
@@ -308,7 +323,6 @@ export interface Address {
   updatedAt: string
 }
 
-// Legacy type alias
 export interface DerivedAddress {
   id: string
   walletId: string
@@ -322,22 +336,69 @@ export interface DerivedAddress {
 // API KEY TYPES
 // ==========================================
 
-export type ApiKeyType = 'PAYMENT' | 'PAYOUT'
+export type ApiKeyType = 'PAYMENT' | 'PAYOUT'  // ✅ FIXED: Removed 'FULL_ACCESS' (not in backend)
 
-export type ApiKeyStatus = 'ACTIVE' | 'REVOKED'
+export type ApiKeyStatus = 'ACTIVE' | 'REVOKED'  // ✅ FIXED: Removed 'EXPIRED' (not in backend)
 
 export interface ApiKey {
   id: string
-  name: string
-  type: ApiKeyType
-  key?: string            // Full key (only on creation)
-  keyHint: string         // Last 4 characters for display
-  status: ApiKeyStatus
   storeId: string
   store?: Store
-  userId: string
-  user?: User
+  name: string
+  key: string
+  type: ApiKeyType
+  status: ApiKeyStatus
+  // ✅ REMOVED: permissions field doesn't exist in backend
+  // ✅ REMOVED: expiresAt field doesn't exist in backend
   lastUsedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+// ==========================================
+// WEBHOOK TYPES
+// ==========================================
+
+export type WebhookEventType =
+  | 'payment.created'
+  | 'payment.detected'
+  | 'payment.confirming'
+  | 'payment.confirmed'
+  | 'payment.overpaid'
+  | 'payment.underpaid'
+  | 'payment.expired'
+  | 'payment.failed'
+  | 'payment.refunding'
+  | 'payment.refunded'
+  | 'payment.cancelled'
+
+export type WebhookDeliveryStatus =
+  | 'PENDING'
+  | 'DELIVERED'
+  | 'FAILED'
+  | 'RETRYING'              // ✅ ADDED
+  | 'MAX_RETRIES_EXCEEDED'  // ✅ ADDED
+
+export interface WebhookEvent {
+  id: string
+  storeId: string
+  store?: Store
+  invoiceId: string
+  invoice?: Invoice
+  eventType: WebhookEventType  // ✅ CHANGED: matches backend
+  endpointUrl: string          // ✅ CHANGED: matches backend
+  signature?: string
+  statusCode?: number          // ✅ CHANGED: matches backend
+  requestPayload: Record<string, unknown>  // ✅ CHANGED: matches backend
+  responseBody?: string        // ✅ CHANGED: matches backend
+  errorMessage?: string
+  deliveredAt?: string
+  lastAttemptAt?: string
+  nextRetryAt?: string
+  attemptCount: number
+  maxRetries: number
+  lastError?: string
+  status: WebhookDeliveryStatus
   createdAt: string
   updatedAt: string
 }
@@ -346,93 +407,18 @@ export interface ApiKey {
 // EXCHANGE RATE TYPES
 // ==========================================
 
-export type ExchangeRateSourceStatus = 'ACTIVE' | 'INACTIVE'
+export type ExchangeRateSourceStatus =
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'ERROR'  // ✅ ADDED
 
 export interface ExchangeRateSource {
   id: string
-  provider: string
+  name: string
   url?: string
+  apiKey?: string
   priority: number
   status: ExchangeRateSourceStatus
-  createdAt: string
-  updatedAt: string
-}
-
-// ==========================================
-// MERCHANT BALANCE TYPES
-// ==========================================
-
-export interface MerchantBalance {
-  id: string
-  merchantId: string
-  currencyId: string
-  currency?: Currency
-  networkId: string
-  network?: Network
-  availableBalance: string
-  pendingBalance: string
-  lockedBalance: string
-  createdAt: string
-  updatedAt: string
-}
-
-// ==========================================
-// WITHDRAWAL TYPES
-// ==========================================
-
-export type WithdrawalStatus =
-  | 'PENDING'
-  | 'APPROVED'
-  | 'PROCESSING'
-  | 'BROADCASTED'
-  | 'CONFIRMED'
-  | 'FAILED'
-  | 'CANCELLED'
-
-export interface Withdrawal {
-  id: string
-  merchantId: string
-  merchant?: Merchant
-  currencyId: string
-  currency?: Currency
-  amount: string
-  fee: string
-  toAddress: string
-  txId?: string
-  status: WithdrawalStatus
-  createdAt: string
-  updatedAt: string
-}
-
-// ==========================================
-// TRANSACTION TYPES
-// ==========================================
-
-export type TransactionStatus =
-  | 'DETECTED'
-  | 'CONFIRMING'
-  | 'CONFIRMED'
-  | 'FAILED'
-  | 'DROPPED'
-  | 'REPLACED'
-
-export interface Transaction {
-  id: string
-  txId: string
-  txUrl?: string
-  fromAddress: string
-  toAddress: string
-  amount: string
-  currency: string
-  blockNumber?: number
-  blockHash?: string
-  transactionIndex?: number
-  status: TransactionStatus
-  metadata?: Record<string, unknown>
-  invoiceId?: string
-  invoice?: Invoice
-  networkId: string
-  network?: Network
   createdAt: string
   updatedAt: string
 }
@@ -452,7 +438,18 @@ export interface DashboardStats {
 
 export interface RevenueDataPoint {
   date: string
-  amount: number
+  revenue: number
+}
+
+// ==========================================
+// PAYMENT PAGE TYPES
+// ==========================================
+
+export interface PaymentPageData {
+  invoice: Invoice
+  currencies: Currency[]
+  networks: Network[]
+  store: Store
 }
 
 // ==========================================
@@ -462,12 +459,7 @@ export interface RevenueDataPoint {
 export interface ApiResponse<T> {
   data: T
   message?: string
-}
-
-export interface ApiError {
-  message: string
-  code?: string
-  statusCode: number
+  error?: string
 }
 
 export interface PaginatedResponse<T> {
@@ -478,65 +470,25 @@ export interface PaginatedResponse<T> {
   totalPages: number
 }
 
+export interface ApiError {
+  message: string
+  statusCode: number
+  error?: string
+}
+
 // ==========================================
-// HELPER FUNCTIONS
+// FORM TYPES
 // ==========================================
 
-// Helper to get display name from User
-export function getUserDisplayName(user: User): string {
-  return `${user.firstName} ${user.lastName}`.trim()
+export interface LoginCredentials {
+  email: string
+  password: string
 }
 
-// Helper to check if invoice is in terminal state
-export function isInvoiceFinal(status: PaymentStatus): boolean {
-  return ['CONFIRMED', 'EXPIRED', 'FAILED', 'REFUNDED', 'CANCELLED'].includes(status)
-}
-
-// Helper to map legacy status to new PaymentStatus
-export function mapLegacyStatus(status: string): PaymentStatus {
-  const mapping: Record<string, PaymentStatus> = {
-    'AWAITING_PAYMENT': 'PENDING',
-    'PAID': 'CONFIRMED',
-  }
-  return (mapping[status] || status) as PaymentStatus
-}
-
-// Webhook Events
-export type WebhookEventType =
-  | 'payment.created'
-  | 'payment.detecting'
-  | 'payment.confirming'
-  | 'payment.confirmed'
-  | 'payment.overpaid'
-  | 'payment.underpaid'
-  | 'payment.expired'
-  | 'payment.failed'
-  | 'payment.refunding'
-  | 'payment.refunded'
-  | 'payment.cancelled'
-
-export type WebhookEventStatus = 'PENDING' | 'DELIVERED' | 'FAILED'
-
-export interface WebhookEvent {
-  id: string
-  storeId: string
-  invoiceId: string
-  event: WebhookEventType
-  url: string
-  payload: Record<string, unknown>
-  response?: {
-    status: number
-    body: string
-  }
-  attempts: number
-  maxAttempts: number
-  status: WebhookEventStatus
-  nextRetryAt?: string
-  deliveredAt?: string
-  failedAt?: string
-  errorMessage?: string
-  createdAt: string
-  updatedAt: string
-  invoice?: Invoice
-  store?: Store
+export interface RegisterData {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  country?: string
 }

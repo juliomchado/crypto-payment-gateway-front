@@ -13,7 +13,7 @@ interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
-  checkAuth: () => Promise<void>
+  checkAuth: (force?: boolean) => Promise<void>
   clearError: () => void
 }
 
@@ -85,11 +85,11 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
     }
   },
 
-  checkAuth: async (): Promise<void> => {
+  checkAuth: async (force = false): Promise<void> => {
     const currentState = useAuthViewModel.getState()
 
-    // Se já está autenticado, não precisa verificar novamente
-    if (currentState.isAuthenticated && currentState.user) {
+    // Se já está autenticado e não é forçado, não precisa verificar novamente
+    if (!force && currentState.isAuthenticated && currentState.user) {
       return
     }
 

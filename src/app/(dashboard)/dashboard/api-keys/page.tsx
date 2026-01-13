@@ -28,7 +28,7 @@ export default function ApiKeysPage() {
   const storeIdParam = searchParams.get('store')
   const { activeStoreId, isAllStores } = useActiveStore()
   const { toast } = useToast()
-  const { apiKeys, isLoading, newlyCreatedKey, fetchAllApiKeys, createApiKey, revokeApiKey, rotateApiKey, clearNewlyCreatedKey } =
+  const { apiKeys, isLoading, newlyCreatedKey, fetchApiKeys, fetchAllApiKeys, createApiKey, revokeApiKey, rotateApiKey, clearNewlyCreatedKey } =
     useApiKeyViewModel()
   const { stores, fetchStores } = useStoreViewModel()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -37,9 +37,13 @@ export default function ApiKeysPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    fetchAllApiKeys()
+    if (activeStoreId && !isAllStores) {
+      fetchApiKeys(activeStoreId)
+    } else {
+      fetchAllApiKeys()
+    }
     fetchStores()
-  }, [fetchAllApiKeys, fetchStores])
+  }, [activeStoreId, isAllStores, fetchApiKeys, fetchAllApiKeys, fetchStores])
 
   const handleCreateKey = async (data: {
     storeId: string

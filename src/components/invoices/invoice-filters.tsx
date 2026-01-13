@@ -11,10 +11,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import type { InvoiceStatus } from '@/models/types'
+import type { PaymentStatus } from '@/models/types'
 
 interface InvoiceFiltersProps {
-  onStatusChange: (status: InvoiceStatus | 'all') => void
+  onStatusChange: (status: PaymentStatus | 'all') => void
   onStoreChange: (storeId: string) => void
   onSearch: (query: string) => void
   stores?: Array<{ id: string; name: string }>
@@ -44,7 +44,7 @@ export function InvoiceFilters({
 
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select onValueChange={(value) => onStatusChange(value as InvoiceStatus | 'all')}>
+            <Select onValueChange={(value) => onStatusChange(value as PaymentStatus | 'all')}>
               <SelectTrigger>
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>

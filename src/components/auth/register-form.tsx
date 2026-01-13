@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -17,10 +17,25 @@ import { useToast } from '@/hooks/use-toast'
 
 const registerSchema = z
   .object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters').max(50, 'First name must be at most 50 characters'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters').max(50, 'Last name must be at most 50 characters'),
-    email: z.string().email('Please enter a valid email'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    firstName: z
+      .string()
+      .min(2, 'First name must be at least 2 characters')
+      .max(50, 'First name must be at most 50 characters'),
+    lastName: z
+      .string()
+      .min(2, 'Last name must be at least 2 characters')
+      .max(50, 'Last name must be at most 50 characters'),
+    email: z
+      .string()
+      .regex(
+        /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/,
+        'Please enter a valid email according to the system rules'
+      ),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
     confirmPassword: z.string(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the terms and conditions',
@@ -35,10 +50,17 @@ type RegisterFormData = z.infer<typeof registerSchema>
 
 export function RegisterForm() {
   const router = useRouter()
-  const { register: registerUser, isLoading, error, clearError } = useAuthViewModel()
+  const { register: registerUser, login, isAuthenticated, isLoading, error, clearError } = useAuthViewModel()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
 
   const {
     register,
@@ -48,6 +70,7 @@ export function RegisterForm() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    mode: 'onChange',
     defaultValues: {
       acceptTerms: false,
     },
@@ -57,24 +80,58 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     clearError()
-    const success = await registerUser({
+
+    // Detect country and language from browser
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const detectedLanguage = navigator.language.split('-')[0] || 'en'
+
+    // Simple timezone to country mapping fallback
+    let country = 'Portugal'
+    if (timeZone.includes('Europe/London')) country = 'United Kingdom'
+    if (timeZone.includes('Europe/Madrid')) country = 'Spain'
+    if (timeZone.includes('America/New_York')) country = 'USA'
+    if (timeZone.includes('America/Sao_Paulo')) country = 'Brazil'
+    // ... add more or use a library, but sticking to basics for now
+
+    const registerData = {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       password: data.password,
-    })
+      country: country,
+      language: 'en' // Restricted to 'en' in backend for now
+    }
+
+    console.log('Sending registration data (detected from browser):', JSON.stringify(registerData, null, 2))
+
+    const success = await registerUser(registerData)
     if (success) {
       toast({
         title: 'Registration successful!',
-        description: 'Please check your email to verify your account.',
+        description: 'Auto-logging you in...',
       })
-      router.push('/login')
+
+      // Auto-login after registration
+      const loginSuccess = await login({
+        email: data.email,
+        password: data.password
+      })
+
+      if (loginSuccess) {
+        router.push('/dashboard')
+      } else {
+        router.push('/login')
+      }
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Registration failed',
-        description: error || 'Something went wrong',
-      })
+      console.error('Registration failed details:', error)
+      // Small delay to ensure authViewModel error state is updated
+      setTimeout(() => {
+        toast({
+          variant: 'destructive',
+          title: 'Registration failed',
+          description: error || 'Validation failed. Check the fields and try again.',
+        })
+      }, 100)
     }
   }
 
@@ -189,10 +246,10 @@ export function RegisterForm() {
               onCheckedChange={(checked) => setValue('acceptTerms', checked as boolean)}
               disabled={isLoading}
             />
-            <div className="grid gap-1.5 leading-none">
+            <div className="grid gap-1.5 leading-none ">
               <label
                 htmlFor="acceptTerms"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 I accept the terms and conditions
               </label>

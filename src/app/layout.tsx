@@ -9,7 +9,7 @@ import '@/styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Crypto Payment Gateway',
+  title: 'MangoPay',
   description: 'Accept cryptocurrency payments for your business',
 }
 

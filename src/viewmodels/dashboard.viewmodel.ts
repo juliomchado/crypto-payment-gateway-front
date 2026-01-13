@@ -11,10 +11,10 @@ interface DashboardState {
 }
 
 interface DashboardActions {
-  fetchDashboardData: (storeId?: string) => Promise<void>
-  fetchStats: (storeId?: string) => Promise<void>
-  fetchRevenueData: (days?: number, storeId?: string) => Promise<void>
-  fetchRecentInvoices: (limit?: number, storeId?: string) => Promise<void>
+  fetchDashboardData: (storeId?: string, merchantId?: string) => Promise<void>
+  fetchStats: (storeId?: string, merchantId?: string) => Promise<void>
+  fetchRevenueData: (days?: number, storeId?: string, merchantId?: string) => Promise<void>
+  fetchRecentInvoices: (limit?: number, storeId?: string, merchantId?: string) => Promise<void>
   clearError: () => void
 }
 
@@ -27,13 +27,18 @@ export const useDashboardViewModel = create<DashboardViewModel>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchDashboardData: async (storeId?: string): Promise<void> => {
+  fetchDashboardData: async (storeId?: string, merchantId?: string): Promise<void> => {
+    // If we have neither storeId nor merchantId, we can't fetch dashboard data
+    if (!storeId && !merchantId) {
+      return
+    }
+
     set({ isLoading: true, error: null })
     try {
       const [stats, revenueData, recentInvoices] = await Promise.all([
-        dashboardService.getStats(storeId),
-        dashboardService.getRevenueData(7, storeId),
-        dashboardService.getRecentInvoices(5, storeId),
+        dashboardService.getStats(storeId, merchantId),
+        dashboardService.getRevenueData(7, storeId, merchantId),
+        dashboardService.getRecentInvoices(5, storeId, merchantId),
       ])
       set({
         stats,
@@ -47,9 +52,9 @@ export const useDashboardViewModel = create<DashboardViewModel>((set) => ({
     }
   },
 
-  fetchStats: async (storeId?: string): Promise<void> => {
+  fetchStats: async (storeId?: string, merchantId?: string): Promise<void> => {
     try {
-      const stats = await dashboardService.getStats(storeId)
+      const stats = await dashboardService.getStats(storeId, merchantId)
       set({ stats })
     } catch (err) {
       const error = err as { message?: string }
@@ -57,9 +62,9 @@ export const useDashboardViewModel = create<DashboardViewModel>((set) => ({
     }
   },
 
-  fetchRevenueData: async (days: number = 7, storeId?: string): Promise<void> => {
+  fetchRevenueData: async (days: number = 7, storeId?: string, merchantId?: string): Promise<void> => {
     try {
-      const revenueData = await dashboardService.getRevenueData(days, storeId)
+      const revenueData = await dashboardService.getRevenueData(days, storeId, merchantId)
       set({ revenueData })
     } catch (err) {
       const error = err as { message?: string }
@@ -67,9 +72,9 @@ export const useDashboardViewModel = create<DashboardViewModel>((set) => ({
     }
   },
 
-  fetchRecentInvoices: async (limit: number = 5, storeId?: string): Promise<void> => {
+  fetchRecentInvoices: async (limit: number = 5, storeId?: string, merchantId?: string): Promise<void> => {
     try {
-      const recentInvoices = await dashboardService.getRecentInvoices(limit, storeId)
+      const recentInvoices = await dashboardService.getRecentInvoices(limit, storeId, merchantId)
       set({ recentInvoices })
     } catch (err) {
       const error = err as { message?: string }

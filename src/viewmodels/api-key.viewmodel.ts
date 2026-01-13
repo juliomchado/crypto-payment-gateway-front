@@ -35,7 +35,7 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
     set({ isLoading: true, error: null })
     try {
       const apiKeys = await apiKeyService.getApiKeys(storeId)
-      set({ apiKeys, isLoading: false })
+      set({ apiKeys: Array.isArray(apiKeys) ? apiKeys : [], isLoading: false })
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to fetch API keys', isLoading: false })
@@ -46,10 +46,10 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
     set({ isLoading: true, error: null })
     try {
       const apiKeys = await apiKeyService.getAllApiKeys()
-      set({ apiKeys, isLoading: false })
+      set({ apiKeys: Array.isArray(apiKeys) ? apiKeys : [], isLoading: false })
     } catch (err) {
-      const error = err as { message?: string }
-      set({ error: error.message || 'Failed to fetch API keys', isLoading: false })
+      // If global fetch fails (e.g. 404), just show empty list instead of error
+      set({ apiKeys: [], isLoading: false })
     }
   },
 

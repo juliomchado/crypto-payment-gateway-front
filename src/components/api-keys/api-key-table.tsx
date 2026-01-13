@@ -80,8 +80,8 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onRotate, onCopy }: 
           {apiKeys.map((apiKey) => {
             const isVisible = visibleKeys.has(apiKey.id)
             const displayKey = isVisible
-              ? `pk_live_${'*'.repeat(28)}${apiKey.keyHint}`
-              : `pk_live_${'•'.repeat(28)}${apiKey.keyHint}`
+              ? `pk_live_${'*'.repeat(28)}${apiKey.key.slice(-4)}`
+              : `pk_live_${'•'.repeat(28)}${apiKey.key.slice(-4)}`
 
             return (
               <TableRow key={apiKey.id}>
@@ -123,7 +123,7 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onRotate, onCopy }: 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onCopy?.(`pk_live_${'*'.repeat(28)}${apiKey.keyHint}`)}
+                        onClick={() => onCopy?.(`pk_live_${'*'.repeat(28)}${apiKey.key.slice(-4)}`)}
                       >
                         <Copy className="mr-2 h-4 w-4" />
                         Copy Key Hint

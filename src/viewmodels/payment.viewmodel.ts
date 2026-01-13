@@ -48,22 +48,22 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
     try {
       const invoice = await invoiceService.getPublicInvoice(invoiceId)
 
-      if (invoice.paymentStatus === 'CONFIRMED') {
+      if (invoice.status === 'CONFIRMED') {
         set({ invoice, step: 'success', isLoading: false })
         return
       }
 
-      if (invoice.paymentStatus === 'EXPIRED') {
+      if (invoice.status === 'EXPIRED') {
         set({ invoice, step: 'expired', isLoading: false })
         return
       }
 
-      if (invoice.paymentStatus === 'CONFIRMING' || invoice.paymentStatus === 'DETECTING') {
+      if (invoice.status === 'CONFIRMING' || invoice.status === 'DETECTED') {
         set({ invoice, step: 'confirming', isLoading: false })
         return
       }
 
-      if (invoice.paymentStatus === 'PENDING' && invoice.paymentAddress) {
+      if (invoice.status === 'PENDING' && invoice.paymentAddress) {
         const expiresAt = invoice.expiresAt ? new Date(invoice.expiresAt).getTime() : 0
         const now = Date.now()
         const timeRemaining = Math.max(0, Math.floor((expiresAt - now) / 1000))

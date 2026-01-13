@@ -81,8 +81,8 @@ export default function PaymentPage() {
   // Filter currencies by selected network
   const filteredCurrencies = selectedNetwork
     ? storeCurrencies.filter((sc) =>
-        sc.currency.network?.name === selectedNetwork || sc.currency.networkId === selectedNetwork
-      )
+      sc.currency.network?.name === selectedNetwork || sc.currency.networkId === selectedNetwork
+    )
     : []
 
   if (step === 'loading' || isLoading) {
@@ -124,7 +124,7 @@ export default function PaymentPage() {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Powered by <span className="font-semibold">CryptoGateway</span>
+            Powered by <span className="font-semibold">MangoPay</span>
           </p>
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function PaymentPage() {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Powered by <span className="font-semibold">CryptoGateway</span>
+            Powered by <span className="font-semibold">MangoPay</span>
           </p>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function PaymentPage() {
               amount={selectedRate?.payerAmount || invoice.cryptoAmount?.toString() || invoice.amount.toString()}
               currency={invoice.cryptoCurrency || invoice.currency}
               address={invoice.paymentAddress}
-              network={typeof invoice.network === 'string' ? invoice.network : invoice.network?.name || invoice.networkId || 'ethereum'}
+              network={invoice.networkId || "ethereum"}
               timeRemaining={timeRemaining}
               exchangeRate={selectedRate?.rate}
               onBack={handleBackToSelection}
@@ -246,7 +246,7 @@ export default function PaymentPage() {
 
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          Powered by <span className="font-semibold">CryptoGateway</span>
+          Powered by <span className="font-semibold">MangoPay</span>
         </p>
       </div>
     </div>

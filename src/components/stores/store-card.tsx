@@ -72,13 +72,13 @@ export function StoreCard({ store, onEdit, onDelete }: StoreCardProps) {
                   API Keys
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onEdit?.(store)} className="cursor-pointer">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(store); }} className="cursor-pointer">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive cursor-pointer"
-                  onClick={() => onDelete?.(store)}
+                  onClick={(e) => { e.stopPropagation(); onDelete?.(store); }}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -13,7 +13,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 import { useToast } from '@/hooks/use-toast'
-import { CONFIG } from '@/lib/config'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -26,9 +25,16 @@ export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
-  const { login, isLoading, error, clearError } = useAuthViewModel()
+  const { login, isAuthenticated, isLoading, error, clearError } = useAuthViewModel()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
 
   const {
     register,
@@ -36,15 +42,6 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: CONFIG.USE_MOCK
-      ? {
-          email: 'merchant@cryptogateway.com',
-          password: 'password',
-        }
-      : {
-          email: '',
-          password: '',
-        },
   })
 
   const onSubmit = async (data: LoginFormData) => {
@@ -119,26 +116,6 @@ export function LoginForm() {
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
-
-          {CONFIG.USE_MOCK && (
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <p className="mb-3 text-sm font-semibold">Mock Accounts (Dev Mode):</p>
-              <div className="space-y-2 text-sm">
-                <div className="rounded-md bg-background/50 p-2">
-                  <p className="font-medium text-foreground">👨‍💼 Merchant</p>
-                  <p className="font-mono text-xs text-muted-foreground">
-                    merchant@cryptogateway.com / password
-                  </p>
-                </div>
-                <div className="rounded-md bg-background/50 p-2">
-                  <p className="font-medium text-foreground">🛡️ Admin</p>
-                  <p className="font-mono text-xs text-muted-foreground">
-                    admin@cryptogateway.com / admin123
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">

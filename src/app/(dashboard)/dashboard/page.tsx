@@ -5,13 +5,16 @@ import { DollarSign, FileText, TrendingUp, Store } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/stat-card'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { RecentInvoices } from '@/components/dashboard/recent-invoices'
+import { ExchangeRatesWidget } from '@/components/dashboard/exchange-rates-widget'
 import { useDashboardViewModel } from '@/viewmodels/dashboard.viewmodel'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 import { useActiveStore } from '@/contexts/active-store.context'
+import { useMerchant } from '@/contexts/merchant.context'
 import { formatCurrency } from '@/lib/utils'
 
 export default function DashboardPage() {
   const { user } = useAuthViewModel()
+  const { merchant } = useMerchant()
   const { activeStoreId, isAllStores } = useActiveStore()
   const { stats, revenueData, recentInvoices, isLoading, fetchDashboardData } =
     useDashboardViewModel()
@@ -19,8 +22,11 @@ export default function DashboardPage() {
   useEffect(() => {
     // Pass store ID only if a specific store is selected (not "All Stores")
     const storeIdFilter = !isAllStores && activeStoreId ? activeStoreId : undefined
-    fetchDashboardData(storeIdFilter)
-  }, [fetchDashboardData, activeStoreId, isAllStores])
+    // Only fetch if we have a merchant ID (or a store ID as fallback)
+    if (storeIdFilter || merchant?.id) {
+      fetchDashboardData(storeIdFilter, merchant?.id)
+    }
+  }, [fetchDashboardData, activeStoreId, isAllStores, merchant?.id])
 
   return (
     <div className="space-y-6">
@@ -62,10 +68,16 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RevenueChart data={revenueData} isLoading={isLoading} />
-        <RecentInvoices invoices={recentInvoices} isLoading={isLoading} />
+      <div className="grid gap-6 lg:grid-cols-7">
+        <div className="lg:col-span-4">
+          <RevenueChart data={revenueData} isLoading={isLoading} />
+        </div>
+        <div className="lg:col-span-3">
+          <ExchangeRatesWidget />
+        </div>
       </div>
+
+      <RecentInvoices invoices={recentInvoices} isLoading={isLoading} />
     </div>
   )
 }

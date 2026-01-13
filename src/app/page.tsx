@@ -11,7 +11,7 @@ export default function Home() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
-            <span className="text-lg font-bold">CryptoGateway</span>
+            <span className="text-lg font-bold">MangoPay</span>
           </div>
           <nav className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
@@ -86,7 +86,7 @@ export default function Home() {
 
       <footer className="border-t bg-background py-6">
         <div className="mx-auto w-full max-w-7xl px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
-          Powered by <span className="font-semibold text-foreground">CryptoGateway</span>
+          Powered by <span className="font-semibold text-foreground">MangoPay</span>
         </div>
       </footer>
     </div>

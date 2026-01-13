@@ -18,22 +18,30 @@ export function formatCrypto(amount: number | string, symbol: string): string {
   return `${numAmount.toFixed(8)} ${symbol}`
 }
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A'
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) return 'Invalid date'
+
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }).format(new Date(date))
+  }).format(dateObj)
 }
 
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A'
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) return 'Invalid date'
+
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(date))
+  }).format(dateObj)
 }
 
 export function shortenAddress(address: string, chars: number = 6): string {

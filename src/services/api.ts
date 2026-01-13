@@ -1,7 +1,7 @@
 import { CONFIG } from '@/lib/config'
 import type { ApiError } from '@/models/types'
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 interface RequestOptions {
   method?: HttpMethod
@@ -35,10 +35,23 @@ class ApiService {
     const response = await fetch(`${this.baseUrl}${endpoint}`, config)
 
     if (!response.ok) {
-      const error: ApiError = await response.json().catch(() => ({
-        message: 'An unexpected error occurred',
+      const errorData = await response.json().catch(() => ({}))
+      console.error(`API Error ${response.status} at ${endpoint}:`, errorData)
+      if (errorData.issues) {
+        console.error('Validation Issues:', JSON.stringify(errorData.issues, null, 2))
+      }
+
+      // Auto-logout on 401 Unauthorized
+      if (response.status === 401 && typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        console.log('[API] 401 Unauthorized - Redirecting to login')
+        window.location.href = '/login'
+      }
+
+      const error: ApiError = {
+        message: errorData.message || 'An unexpected error occurred',
         statusCode: response.status,
-      }))
+        error: errorData.error,
+      }
       throw error
     }
 
@@ -55,6 +68,10 @@ class ApiService {
 
   async post<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(endpoint, { method: 'POST', body, headers })
+  }
+
+  async put<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return this.request<T>(endpoint, { method: 'PUT', body, headers })
   }
 
   async patch<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {

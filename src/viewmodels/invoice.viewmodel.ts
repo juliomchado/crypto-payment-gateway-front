@@ -5,7 +5,7 @@ import {
   type GenerateAddressData,
   type InvoiceFilters,
 } from '@/services/invoice.service'
-import type { Invoice, InvoiceStatus } from '@/models/types'
+import type { Invoice, PaymentStatus } from '@/models/types'
 
 interface InvoiceState {
   invoices: Invoice[]
@@ -47,10 +47,10 @@ export const useInvoiceViewModel = create<InvoiceViewModel>((set, get) => ({
       const mergedFilters = { ...get().filters, ...filters }
       const response = await invoiceService.getInvoices(mergedFilters)
       set({
-        invoices: response.data,
-        totalInvoices: response.total,
-        currentPage: response.page,
-        totalPages: response.totalPages,
+        invoices: Array.isArray(response?.data) ? response.data : [],
+        totalInvoices: response?.total || 0,
+        currentPage: response?.page || 1,
+        totalPages: response?.totalPages || 1,
         filters: mergedFilters,
         isLoading: false,
       })

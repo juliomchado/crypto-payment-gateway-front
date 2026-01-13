@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useWalletViewModel } from '@/viewmodels/wallet.viewmodel'
-import { MOCK_MERCHANT } from '@/models/mock-data'
+import { useMerchant } from '@/contexts/merchant.context'
 import { CHAIN_TYPE_NAMES } from '@/services/wallet.service'
 import type { ChainType } from '@/models/types'
 
@@ -41,6 +41,7 @@ interface CreateWalletDialogProps {
 
 export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogProps) {
   const { toast } = useToast()
+  const { merchant } = useMerchant()
   const { createWallet } = useWalletViewModel()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -58,11 +59,20 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
   })
 
   const onSubmit = async (data: CreateWalletFormData) => {
+    if (!merchant) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Merchant information not available.',
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
       await createWallet({
         chainType: data.chainType,
-        merchantId: MOCK_MERCHANT.id,
+        merchantId: merchant.id,
       })
       toast({
         title: 'Wallet created',

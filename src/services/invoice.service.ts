@@ -1,35 +1,34 @@
-import { CONFIG } from '@/lib/config'
 import { api } from './api'
-import { MOCK_INVOICES, MOCK_CURRENCIES } from '@/models/mock-data'
-import { generateId } from '@/lib/utils'
-import type { Invoice, PaymentStatus, ApiResponse, PaginatedResponse, InvoiceRate } from '@/models/types'
+import type { Invoice, PaymentStatus, ApiResponse, PaginatedResponse } from '@/models/types'
 
-// Request DTOs matching backend API
 export interface CreateInvoiceData {
-  storeId: string
-  amount: string              // Decimal as string (backend requirement)
-  currency: string            // ISO currency code (USD, EUR, BRL, etc)
-  orderId: string             // External unique order reference
-  lifespan?: number           // Expiration time in seconds (300-43200, default 3600)
-  title?: string              // Invoice title (3-150 characters)
-  description?: string        // Invoice description (3-500 characters)
-  customerEmail?: string      // Customer email for notifications
-  isPaymentMultiple?: boolean // Allow multiple payments (default: false)
-  accuracyPaymentPercent?: number  // Payment accuracy margin 0-5% (default: 0)
-  additionalData?: Record<string, unknown>  // Custom JSON metadata
-  fromReferralCode?: string   // Referral code
-  urlCallback?: string        // Webhook URL for payment notifications
-  urlReturn?: string          // Redirect URL after payment
-  urlSuccess?: string         // Redirect URL on successful payment
+  // Header
+  store: string
+  // Body (Mandatory)
+  amount: string
+  currency: string
+  orderId: string
+  title: string
+  description: string
+  fromReferralCode: string | null
+  urlCallback: string
+  urlSuccess: string
+  urlReturn: string
+  // Optional
+  lifespan?: number
+  isPaymentMultiple?: boolean
+  accuracyPaymentPercent?: number
+  additionalData?: Record<string, unknown>
 }
 
 export interface GenerateAddressData {
-  token: string               // Cryptocurrency symbol (BTC, ETH, SOL, etc)
-  network: string             // Network ID
+  token: string
+  network: string
 }
 
 export interface InvoiceFilters {
   storeId?: string
+  merchantId?: string
   status?: PaymentStatus
   startDate?: string
   endDate?: string
@@ -37,179 +36,46 @@ export interface InvoiceFilters {
   limit?: number
 }
 
-// Helper to convert number to string for API
 export function toAmountString(amount: number): string {
   return amount.toString()
 }
 
-// Helper to convert string to number for display
 export function fromAmountString(amount: string): number {
   return parseFloat(amount) || 0
 }
 
 class InvoiceService {
-  private get mockInvoices(): Invoice[] {
-    if (typeof window === 'undefined') return [...MOCK_INVOICES]
-    const stored = localStorage.getItem('mock_invoices')
-    return stored ? JSON.parse(stored) : [...MOCK_INVOICES]
-  }
-
-  private set mockInvoices(value: Invoice[]) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('mock_invoices', JSON.stringify(value))
-    }
-  }
-
   async getInvoices(filters?: InvoiceFilters): Promise<PaginatedResponse<Invoice>> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      let filtered = [...this.mockInvoices]
-
-      if (filters?.storeId) {
-        filtered = filtered.filter((inv) => inv.storeId === filters.storeId)
-      }
-      if (filters?.status) {
-        filtered = filtered.filter((inv) => inv.paymentStatus === filters.status)
-      }
-
-      const page = filters?.page || 1
-      const limit = filters?.limit || 10
-      const start = (page - 1) * limit
-      const end = start + limit
-
-      return {
-        data: filtered.slice(start, end),
-        total: filtered.length,
-        page,
-        limit,
-        totalPages: Math.ceil(filtered.length / limit),
-      }
-    }
-
     const params = new URLSearchParams()
     if (filters?.storeId) params.append('storeId', filters.storeId)
+    if (filters?.merchantId) params.append('merchantId', filters.merchantId)
     if (filters?.status) params.append('status', filters.status)
     if (filters?.startDate) params.append('startDate', filters.startDate)
     if (filters?.endDate) params.append('endDate', filters.endDate)
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
-    return api.get<PaginatedResponse<Invoice>>(`/v1/invoice?${params.toString()}`)
+    const response = await api.get<ApiResponse<PaginatedResponse<Invoice>>>(`/v1/invoice?${params.toString()}`)
+    return response.data
   }
 
   async getInvoice(id: string): Promise<Invoice> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      const invoice = this.mockInvoices.find((inv) => inv.id === id)
-      if (!invoice) {
-        throw { message: 'Invoice not found', statusCode: 404 }
-      }
-      return invoice
-    }
     const response = await api.get<ApiResponse<Invoice>>(`/v1/invoice/${id}`)
     return response.data
   }
 
   async createInvoice(data: CreateInvoiceData): Promise<Invoice> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
+    const { store, ...body } = data
+    console.log('Creating invoice for store:', store)
+    console.log('Creating invoice with body:', JSON.stringify(body, null, 2))
 
-      const amount = fromAmountString(data.amount)
-
-      // Generate mock exchange rates for all available currencies
-      const mockRates: InvoiceRate[] = MOCK_CURRENCIES.map((currency) => ({
-        currencyId: currency.id,
-        networkId: currency.networkId,
-        rate: (0.00002 + Math.random() * 0.00001).toFixed(8),
-        payerAmount: (amount * (0.00002 + Math.random() * 0.00001)).toFixed(18),
-      }))
-
-      const lifespan = data.lifespan || 3600
-
-      const newInvoice: Invoice = {
-        id: generateId(),
-        storeId: data.storeId,
-        orderId: data.orderId,
-        amount: data.amount,
-        currency: data.currency,
-        title: data.title,
-        description: data.description,
-        customerEmail: data.customerEmail,
-        paymentStatus: 'PENDING',
-        isFinal: false,
-        isPaymentMultiple: data.isPaymentMultiple || false,
-        accuracyPaymentPercent: data.accuracyPaymentPercent || 0,
-        subtract: 0,
-        additionalData: data.additionalData,
-        fromReferralCode: data.fromReferralCode,
-        urlCallback: data.urlCallback,
-        urlReturn: data.urlReturn,
-        urlSuccess: data.urlSuccess,
-        rates: mockRates,
-        expiresAt: new Date(Date.now() + lifespan * 1000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      const invoices = this.mockInvoices
-      invoices.unshift(newInvoice)
-      this.mockInvoices = invoices
-      return newInvoice
-    }
-
-    const response = await api.post<ApiResponse<Invoice>>('/v1/invoice', data)
+    const response = await api.post<ApiResponse<Invoice>>('/v1/invoice', body, {
+      store,
+    })
     return response.data
   }
 
   async generatePaymentAddress(invoiceId: string, data: GenerateAddressData): Promise<Invoice> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      const invoices = this.mockInvoices
-      const index = invoices.findIndex((inv) => inv.id === invoiceId)
-      if (index === -1) {
-        throw { message: 'Invoice not found', statusCode: 404 }
-      }
-
-      const currency = MOCK_CURRENCIES.find(
-        (c) => c.symbol === data.token && c.networkId === data.network
-      )
-
-      const mockAddresses: Record<string, string> = {
-        ethereum: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        bsc: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        polygon: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-        solana: Array.from({ length: 44 }, () =>
-          'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789'[
-            Math.floor(Math.random() * 58)
-          ]
-        ).join(''),
-        bitcoin: 'bc1' + Array.from({ length: 39 }, () =>
-          'qpzry9x8gf2tvdw0s3jn54khce6mua7l'[Math.floor(Math.random() * 32)]
-        ).join(''),
-      }
-
-      const amount = fromAmountString(invoices[index].amount)
-      const rate = currency ? 0.00003 : 0.00002
-      const payerAmount = (amount * rate).toFixed(8)
-
-      invoices[index] = {
-        ...invoices[index],
-        paymentStatus: 'PENDING',
-        payer_currency: data.token,
-        payer_amount: payerAmount,
-        networkId: data.network,
-        paymentAddress: mockAddresses[data.network] || mockAddresses.ethereum,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        updatedAt: new Date().toISOString(),
-        // Legacy fields for backward compatibility
-        cryptoCurrency: data.token,
-        cryptoAmount: payerAmount,
-      }
-
-      this.mockInvoices = invoices
-      return invoices[index]
-    }
-
     const response = await api.post<ApiResponse<Invoice>>(
       `/v1/invoice/${invoiceId}/address`,
       data
@@ -218,20 +84,13 @@ class InvoiceService {
   }
 
   async getPublicInvoice(id: string): Promise<Invoice> {
-    if (CONFIG.USE_MOCK) {
-      await this.simulateDelay()
-      const invoice = this.mockInvoices.find((inv) => inv.id === id)
-      if (!invoice) {
-        throw { message: 'Invoice not found', statusCode: 404 }
-      }
-      return invoice
-    }
     const response = await api.get<ApiResponse<Invoice>>(`/v1/invoice/${id}`)
     return response.data
   }
 
-  private simulateDelay(ms: number = 300): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+  async getInvoiceTransactions(id: string): Promise<any[]> {
+    const response = await api.get<ApiResponse<any[]>>(`/v1/invoice/${id}/transactions`)
+    return response.data
   }
 }
 

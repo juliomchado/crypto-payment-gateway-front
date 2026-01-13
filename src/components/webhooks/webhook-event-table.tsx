@@ -78,7 +78,7 @@ export function WebhookEventTable({
           {webhookEvents.map((event) => (
             <TableRow key={event.id}>
               <TableCell className="font-medium">
-                {eventLabels[event.event] || event.event}
+                {eventLabels[event.eventType] || event.eventType}
               </TableCell>
               <TableCell>
                 <code className="text-xs">{event.invoiceId.slice(0, 8)}...</code>
@@ -97,7 +97,7 @@ export function WebhookEventTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {event.attempts} / {event.maxAttempts}
+                {event.attemptCount} / {event.maxRetries}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {formatDateTime(event.createdAt)}

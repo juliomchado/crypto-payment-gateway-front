@@ -8,20 +8,25 @@ import { InvoiceFilters } from '@/components/invoices/invoice-filters'
 import { CreateInvoiceDialog } from '@/components/invoices/create-invoice-dialog'
 import { useInvoiceViewModel } from '@/viewmodels/invoice.viewmodel'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
-import type { InvoiceStatus } from '@/models/types'
+import { useMerchant } from '@/contexts/merchant.context'
+import type { PaymentStatus } from '@/models/types'
 
 export default function InvoicesPage() {
   const { invoices, isLoading, fetchInvoices, setFilters } = useInvoiceViewModel()
   const { stores, fetchStores } = useStoreViewModel()
+  const { merchant } = useMerchant()
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   useEffect(() => {
-    fetchInvoices()
-    fetchStores()
-  }, [fetchInvoices, fetchStores])
+    if (merchant?.id) {
+      // Pass merchantId to fetchInvoices to fix 400 error
+      fetchInvoices({ merchantId: merchant.id })
+      fetchStores()
+    }
+  }, [fetchInvoices, fetchStores, merchant?.id])
 
-  const handleStatusChange = (status: InvoiceStatus | 'all') => {
+  const handleStatusChange = (status: PaymentStatus | 'all') => {
     setFilters({ status: status === 'all' ? undefined : status, page: 1 })
     fetchInvoices()
   }
@@ -37,8 +42,8 @@ export default function InvoicesPage() {
 
   const filteredInvoices = searchQuery
     ? invoices.filter((inv) =>
-        inv.orderId.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      inv.orderId.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : invoices
 
   return (
