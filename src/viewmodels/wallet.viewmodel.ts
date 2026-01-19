@@ -13,7 +13,7 @@ interface WalletActions {
   fetchWallets: (merchantId?: string) => Promise<void>
   fetchWallet: (id: string) => Promise<void>
   createWallet: (data: CreateWalletData) => Promise<Wallet | null>
-  deriveAddress: (walletId: string) => Promise<DerivedAddress | null>
+  deriveAddress: (walletId: string, invoiceId: string) => Promise<DerivedAddress | null>
   selectWallet: (wallet: Wallet | null) => void
   clearError: () => void
 }
@@ -64,10 +64,11 @@ export const useWalletViewModel = create<WalletViewModel>((set, get) => ({
     }
   },
 
-  deriveAddress: async (walletId: string): Promise<DerivedAddress | null> => {
+  deriveAddress: async (walletId: string, invoiceId: string): Promise<DerivedAddress | null> => {
     set({ isLoading: true, error: null })
     try {
-      const address = await walletService.deriveAddress(walletId)
+      // Backend requires invoiceId to link address to invoice
+      const address = await walletService.deriveAddress(walletId, invoiceId)
       set((state) => ({
         wallets: state.wallets.map((w) =>
           w.id === walletId

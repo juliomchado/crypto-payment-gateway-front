@@ -234,7 +234,7 @@ export default function StoreCurrenciesPage() {
                   <SelectValue placeholder="Select a currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableToAdd.length === 0 ? (
+                  {!availableToAdd || availableToAdd.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
                       All available currencies have been added
                     </div>

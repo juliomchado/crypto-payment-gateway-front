@@ -18,7 +18,7 @@ export interface UpdateMerchantData {
 export interface ListMerchantsQuery {
   skip?: number
   take?: number
-  isActive?: boolean
+  status?: MerchantStatus  // Changed from isActive to status enum
 }
 
 class MerchantService {
@@ -26,13 +26,16 @@ class MerchantService {
     const params = new URLSearchParams()
     if (query?.skip) params.append('skip', query.skip.toString())
     if (query?.take) params.append('take', query.take.toString())
-    if (query?.isActive !== undefined) params.append('isActive', query.isActive.toString())
+    // Backend uses status parameter with MerchantStatus enum values
+    if (query?.status) params.append('status', query.status)
 
+    // Backend returns { merchants, total } structure directly
     interface BackendListResponse {
       merchants: (Merchant & { name?: string })[]
+      total: number
     }
-    const response = await api.get<ApiResponse<BackendListResponse>>(`/merchants?${params.toString()}`)
-    const items = response.data.merchants || []
+    const response = await api.get<BackendListResponse>(`/merchants?${params.toString()}`)
+    const items = response.merchants || []
 
     return items.map(m => ({
       ...m,
@@ -41,8 +44,8 @@ class MerchantService {
   }
 
   async getMerchant(id: string): Promise<Merchant> {
-    const response = await api.get<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}`)
-    const merchant = response.data
+    // Backend returns Merchant directly (not wrapped in ApiResponse)
+    const merchant = await api.get<Merchant & { name?: string }>(`/merchants/${id}`)
     return {
       ...merchant,
       merchantName: merchant.merchantName || merchant.name
@@ -50,11 +53,13 @@ class MerchantService {
   }
 
   async getCurrent(): Promise<Merchant | null> {
+    // Backend returns { merchants, total } structure directly
     interface BackendListResponse {
       merchants: (Merchant & { name?: string })[]
+      total: number
     }
-    const response = await api.get<ApiResponse<BackendListResponse>>('/merchants')
-    const merchants = response.data.merchants
+    const response = await api.get<BackendListResponse>('/merchants')
+    const merchants = response.merchants
 
     if (!merchants || merchants.length === 0) {
       return null
@@ -68,8 +73,8 @@ class MerchantService {
   }
 
   async createMerchant(data: CreateMerchantData): Promise<Merchant> {
-    const response = await api.post<ApiResponse<Merchant & { name?: string }>>('/merchants', data)
-    const merchant = response.data
+    // Backend returns Merchant directly (not wrapped in ApiResponse)
+    const merchant = await api.post<Merchant & { name?: string }>('/merchants', data)
     return {
       ...merchant,
       merchantName: merchant.merchantName || merchant.name
@@ -77,8 +82,8 @@ class MerchantService {
   }
 
   async updateMerchant(id: string, data: UpdateMerchantData): Promise<Merchant> {
-    const response = await api.patch<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}`, data)
-    const merchant = response.data
+    // Backend returns Merchant directly (not wrapped in ApiResponse)
+    const merchant = await api.patch<Merchant & { name?: string }>(`/merchants/${id}`, data)
     return {
       ...merchant,
       merchantName: merchant.merchantName || merchant.name
@@ -90,8 +95,8 @@ class MerchantService {
   }
 
   async updateMerchantStatus(id: string, status: MerchantStatus): Promise<Merchant> {
-    const response = await api.patch<ApiResponse<Merchant & { name?: string }>>(`/merchants/${id}/status`, { status })
-    const merchant = response.data
+    // Backend returns Merchant directly (not wrapped in ApiResponse)
+    const merchant = await api.patch<Merchant & { name?: string }>(`/merchants/${id}/status`, { status })
     return {
       ...merchant,
       merchantName: merchant.merchantName || merchant.name

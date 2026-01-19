@@ -72,7 +72,7 @@ export default function WalletsPage() {
             <Skeleton key={i} className="h-[180px] rounded-xl" />
           ))}
         </div>
-      ) : wallets.length === 0 ? (
+      ) : !wallets || wallets.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
           <p className="text-muted-foreground">
             {canCreateWallet

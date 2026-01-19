@@ -88,7 +88,6 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
   checkAuth: async (force = false): Promise<void> => {
     const currentState = useAuthViewModel.getState()
 
-    // Se já está autenticado e não é forçado, não precisa verificar novamente
     if (!force && currentState.isAuthenticated && currentState.user) {
       return
     }

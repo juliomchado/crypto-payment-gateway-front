@@ -20,16 +20,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
-import { MoreHorizontal, CheckCircle, XCircle, Pause, Archive } from 'lucide-react'
+import { MoreHorizontal, CheckCircle, XCircle, Pause } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { MerchantStatus, Merchant } from '@/models/types'
 
 const STATUS_CONFIG = {
-  PENDING_APPROVAL: { label: 'Pending', variant: 'warning' as const, icon: Pause },
+  PENDING: { label: 'Pending', variant: 'warning' as const, icon: Pause },
   APPROVED: { label: 'Approved', variant: 'success' as const, icon: CheckCircle },
   SUSPENDED: { label: 'Suspended', variant: 'destructive' as const, icon: Pause },
   REJECTED: { label: 'Rejected', variant: 'destructive' as const, icon: XCircle },
-  ARCHIVED: { label: 'Archived', variant: 'secondary' as const, icon: Archive },
 }
 
 export default function AdminMerchantsPage() {
@@ -61,10 +60,10 @@ export default function AdminMerchantsPage() {
   }
 
   const filteredMerchants = filter === 'pending'
-    ? merchants.filter(m => m.status === 'PENDING_APPROVAL')
+    ? merchants.filter(m => m.status === 'PENDING')
     : merchants
 
-  const pendingCount = merchants.filter(m => m.status === 'PENDING_APPROVAL').length
+  const pendingCount = merchants.filter(m => m.status === 'PENDING').length
 
   return (
     <div className="space-y-6">
@@ -180,15 +179,6 @@ export default function AdminMerchantsPage() {
                               >
                                 <Pause className="mr-2 h-4 w-4" />
                                 Suspend
-                              </DropdownMenuItem>
-                            )}
-                            {merchant.status !== 'ARCHIVED' && (
-                              <DropdownMenuItem
-                                onClick={() => handleStatusChange(merchant.id, 'ARCHIVED')}
-                                className="text-gray-600 cursor-pointer"
-                              >
-                                <Archive className="mr-2 h-4 w-4" />
-                                Archive
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>

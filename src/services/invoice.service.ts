@@ -55,42 +55,55 @@ class InvoiceService {
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
-    const response = await api.get<ApiResponse<PaginatedResponse<Invoice>>>(`/v1/invoice?${params.toString()}`)
-    return response.data
+    // Backend returns { data, pagination } structure directly
+    interface InvoiceListResponse {
+      data: Invoice[]
+      pagination: {
+        page: number
+        limit: number
+        total: number
+        totalPages: number
+      }
+    }
+    const response = await api.get<InvoiceListResponse>(`/v1/invoice?${params.toString()}`)
+    // Return full response with pagination info
+    return {
+      data: response.data,
+      total: response.pagination.total,
+      page: response.pagination.page,
+      limit: response.pagination.limit,
+      totalPages: response.pagination.totalPages
+    }
   }
 
   async getInvoice(id: string): Promise<Invoice> {
-    const response = await api.get<ApiResponse<Invoice>>(`/v1/invoice/${id}`)
-    return response.data
+    const response = await api.get<any>(`/v1/invoice/${id}`)
+    return response.data || response
   }
 
   async createInvoice(data: CreateInvoiceData): Promise<Invoice> {
     const { store, ...body } = data
-    console.log('Creating invoice for store:', store)
-    console.log('Creating invoice with body:', JSON.stringify(body, null, 2))
-
-    const response = await api.post<ApiResponse<Invoice>>('/v1/invoice', body, {
-      store,
-    })
-    return response.data
+    const response = await api.post<any>(`/v1/invoice/${store}`, body)
+    return response.data || response
   }
 
   async generatePaymentAddress(invoiceId: string, data: GenerateAddressData): Promise<Invoice> {
-    const response = await api.post<ApiResponse<Invoice>>(
+    const response = await api.post<any>(
       `/v1/invoice/${invoiceId}/address`,
       data
     )
-    return response.data
+    return response.data || response
   }
 
   async getPublicInvoice(id: string): Promise<Invoice> {
-    const response = await api.get<ApiResponse<Invoice>>(`/v1/invoice/${id}`)
-    return response.data
+    const response = await api.get<any>(`/v1/invoice/${id}`)
+    return response.data || response
   }
 
   async getInvoiceTransactions(id: string): Promise<any[]> {
-    const response = await api.get<ApiResponse<any[]>>(`/v1/invoice/${id}/transactions`)
-    return response.data
+    // Backend returns { transactions } wrapper
+    const response = await api.get<{ transactions: any[] }>(`/v1/invoice/${id}/transactions`)
+    return response.transactions
   }
 }
 

@@ -16,33 +16,45 @@ class WalletService {
   async getWallets(merchantId?: string): Promise<Wallet[]> {
     // Endpoint as per API Reference (GET /wallets/merchant/:merchantId)
     const endpoint = merchantId ? `/wallets/merchant/${merchantId}` : '/wallets'
-    const response = await api.get<ApiResponse<Wallet[]>>(endpoint)
-    return response.data
+    // Backend returns { wallets } wrapper
+    interface WalletListResponse {
+      wallets: Wallet[]
+    }
+    const response = await api.get<WalletListResponse>(endpoint)
+    return response.wallets
   }
 
   async getWallet(id: string): Promise<Wallet> {
-    const response = await api.get<ApiResponse<Wallet>>(`/wallets/${id}`)
-    return response.data
+    // Backend returns Wallet directly (not wrapped in ApiResponse)
+    const response = await api.get<Wallet>(`/wallets/${id}`)
+    return response
   }
 
   async createWallet(data: CreateWalletData): Promise<Wallet> {
-    const response = await api.post<ApiResponse<Wallet>>('/wallets', data)
-    return response.data
+    // Backend returns Wallet directly (not wrapped in ApiResponse)
+    const response = await api.post<Wallet>('/wallets', data)
+    return response
   }
 
-  async deriveAddress(walletId: string): Promise<DerivedAddress> {
-    const response = await api.post<ApiResponse<DerivedAddress>>(`/wallets/${walletId}/derive`)
-    return response.data
+  async deriveAddress(walletId: string, invoiceId: string): Promise<DerivedAddress> {
+    // Backend requires invoiceId parameter to link address to invoice
+    const response = await api.post<DerivedAddress>(
+      `/wallets/${walletId}/derive`,
+      { invoiceId }
+    )
+    return response
   }
 
   async getAddress(addressId: string): Promise<Address> {
-    const response = await api.get<ApiResponse<Address>>(`/addresses/${addressId}`)
-    return response.data
+    // Backend returns Address directly (not wrapped in ApiResponse)
+    const response = await api.get<Address>(`/addresses/${addressId}`)
+    return response
   }
 
   async lookupAddress(addressString: string): Promise<Address> {
-    const response = await api.get<ApiResponse<Address>>(`/addresses/lookup/${addressString}`)
-    return response.data
+    // Backend returns Address directly (not wrapped in ApiResponse)
+    const response = await api.get<Address>(`/addresses/lookup/${addressString}`)
+    return response
   }
 }
 

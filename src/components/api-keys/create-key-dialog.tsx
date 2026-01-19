@@ -187,11 +187,17 @@ export function CreateKeyDialog({
                   <SelectValue placeholder="Select a store" />
                 </SelectTrigger>
                 <SelectContent>
-                  {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
+                  {stores && stores.length > 0 ? (
+                    stores.map((store) => (
+                      <SelectItem key={store.id} value={store.id}>
+                        {store.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      No stores available
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
               {errors.storeId && (

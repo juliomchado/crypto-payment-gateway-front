@@ -36,25 +36,19 @@ export function MerchantProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // 1. OPTION A (Best): Use merchant data from user object (no API call needed)
     if (user.merchant) {
-      console.log('[MerchantContext] Using merchant data from user object')
       setMerchant(user.merchant)
       setIsLoading(false)
       return
     }
 
-    // 2. OPTION B: If we have merchantId, fetch specific merchant (User allowed)
     if (user.merchantId) {
-      console.log('[MerchantContext] Fetching specific merchant by ID:', user.merchantId)
       try {
         setIsLoading(true)
         setError(null)
         const data = await merchantService.getMerchant(user.merchantId)
-        console.log('[MerchantContext] Merchant fetched by ID successfully')
         setMerchant(data)
       } catch (err: any) {
-        console.log('[MerchantContext] Error fetching merchant by ID:', err)
         const error = err as { message?: string }
         setError(error.message || 'Failed to fetch merchant')
         setMerchant(null)
@@ -64,16 +58,20 @@ export function MerchantProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // 3. OPTION C: Fallback - only use list endpoint if absolutely necessary
-    // This is what causes 403 for non-admins, so we skip it for MERCHANTS
-    if (user.role === 'MERCHANT') {
-      console.log('[MerchantContext] Skipping list endpoint for MERCHANT role (requires ID)')
+    if (user.role === 'USER') {
       setMerchant(null)
       setIsLoading(false)
       return
     }
 
-    // Only continue to list fetch for ADMIN or other roles
+    if (user.role === 'MERCHANT') {
+      setMerchant(null)
+      setIsLoading(false)
+      return
+    }
+
+    setMerchant(null)
+    setIsLoading(false)
   }
 
   useEffect(() => {

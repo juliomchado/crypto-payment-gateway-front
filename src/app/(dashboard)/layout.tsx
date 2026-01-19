@@ -20,18 +20,18 @@ export default function DashboardLayout({
 
   useEffect(() => {
     checkAuth()
-  }, [checkAuth])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/login')
       } else if (user && user.role === 'USER' && pathname !== '/setup') {
-        // USER role doesn't have dashboard access, except for the setup page
-        router.push('/')
+        router.push('/setup')
       }
     }
-  }, [isLoading, isAuthenticated, user, router])
+  }, [isLoading, isAuthenticated, user, router, pathname])
 
   if (isLoading) {
     return (

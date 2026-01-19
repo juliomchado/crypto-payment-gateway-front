@@ -397,7 +397,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   <Button
                     type="button"
                     onClick={() => setCurrentStep(2)}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !selectedStoreId}
                     className="w-full sm:w-auto"
                   >
                     Next: Optional Fields →
@@ -495,21 +495,10 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                   >
                     ← Back
                   </Button>
-                  <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setCurrentStep(1)}
-                      disabled={isSubmitting}
-                      className="w-full sm:w-auto"
-                    >
-                      Skip
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create Invoice
-                    </Button>
-                  </div>
+                  <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Invoice
+                  </Button>
                 </div>
               </>
             )}

@@ -65,11 +65,10 @@ export default function StoresPage() {
     }
 
     setIsSubmitting(true)
+    // merchantId and exchangeRateSourceId are auto-assigned by backend
     const store = await createStore({
       name: data.name,
       slug: generateSlug(data.name),
-      merchantId: merchant.id,
-      exchangeRateSourceId: DEFAULT_EXCHANGE_RATE_SOURCE_ID,
       status: data.isActive ? 'ACTIVE' : 'INACTIVE',
       urlCallback: data.urlCallback,
       urlReturn: data.urlReturn,

@@ -47,11 +47,11 @@ export interface AuthState {
 // ==========================================
 
 export type MerchantStatus =
-  | 'PENDING_APPROVAL'
+  | 'PENDING'      // Changed from PENDING_APPROVAL to match backend
   | 'APPROVED'
   | 'SUSPENDED'
   | 'REJECTED'
-  | 'ARCHIVED'
+  // ARCHIVED removed - doesn't exist in backend
 
 export interface Merchant {
   id: string

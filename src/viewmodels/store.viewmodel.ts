@@ -66,7 +66,8 @@ export const useStoreViewModel = create<StoreViewModel>((set, get) => ({
   createStore: async (data: CreateStoreData): Promise<Store | null> => {
     set({ isLoading: true, error: null })
     try {
-      const store = await storeService.createStore(data)
+      const result = await storeService.createStore(data)
+      const store = result.store
       set((state) => ({
         stores: [...state.stores, store],
         isLoading: false,

@@ -4,13 +4,20 @@ import type { Store, StoreCurrency, Currency, ApiResponse, PaginatedResponse, St
 export interface CreateStoreData {
   name: string
   slug: string
-  merchantId: string
-  exchangeRateSourceId: string
   description?: string
   status?: StoreStatus
   urlCallback?: string
   urlReturn?: string
   urlSuccess?: string
+  // merchantId is auto-assigned from JWT token
+  // exchangeRateSourceId not used in creation
+}
+
+export interface CreateStoreResponse {
+  store: Store
+  apiKeys: {
+    payment: string
+  }
 }
 
 export interface UpdateStoreData {
@@ -52,28 +59,35 @@ export interface ConfigureCurrencyData {
 class StoreService {
   async getStores(query?: ListStoresQuery): Promise<Store[]> {
     const params = new URLSearchParams()
-    if (query?.page) params.append('page', query.page.toString())
-    if (query?.limit) params.append('limit', query.limit.toString())
+    // Backend uses skip/take pagination, not page/limit
+    const page = query?.page || 1
+    const limit = query?.limit || 20
+    const skip = (page - 1) * limit
+    params.append('skip', skip.toString())
+    params.append('take', limit.toString())
     if (query?.merchantId) params.append('merchantId', query.merchantId)
     if (query?.status) params.append('status', query.status)
 
-    const response = await api.get<ApiResponse<Store[]>>(`/stores?${params.toString()}`)
-    return response.data
+    const response = await api.get<Store[]>(`/stores?${params.toString()}`)
+    return response
   }
 
   async getStore(id: string): Promise<Store> {
-    const response = await api.get<ApiResponse<Store>>(`/stores/${id}`)
-    return response.data
+    // Backend returns Store directly (not wrapped in ApiResponse)
+    const response = await api.get<Store>(`/stores/${id}`)
+    return response
   }
 
-  async createStore(data: CreateStoreData): Promise<Store> {
-    const response = await api.post<ApiResponse<Store>>('/stores', data)
-    return response.data
+  async createStore(data: CreateStoreData): Promise<CreateStoreResponse> {
+    // Backend returns { store, apiKeys } structure
+    const response = await api.post<CreateStoreResponse>('/stores', data)
+    return response
   }
 
   async updateStore(id: string, data: UpdateStoreData): Promise<Store> {
-    const response = await api.patch<ApiResponse<Store>>(`/stores/${id}`, data)
-    return response.data
+    // Backend returns Store directly (not wrapped in ApiResponse)
+    const response = await api.patch<Store>(`/stores/${id}`, data)
+    return response
   }
 
   async deleteStore(id: string): Promise<void> {
@@ -81,41 +95,56 @@ class StoreService {
   }
 
   async getStoreCurrencies(storeId: string): Promise<StoreCurrency[]> {
-    const response = await api.get<ApiResponse<StoreCurrency[]>>(`/stores/${storeId}/currencies`)
-    return response.data
+    // Backend returns array directly (not wrapped in ApiResponse)
+    const response = await api.get<StoreCurrency[]>(`/stores/${storeId}/currencies`)
+    return response
   }
 
   async getAvailableCurrencies(): Promise<Currency[]> {
-    const response = await api.get<ApiResponse<Currency[]>>('/currencies')
-    return response.data
+    // Backend returns array directly (not wrapped in ApiResponse)
+    const response = await api.get<Currency[]>('/currencies')
+    return response
   }
 
   async addStoreCurrency(storeId: string, data: AddStoreCurrencyData): Promise<StoreCurrency> {
-    const response = await api.put<ApiResponse<StoreCurrency>>(
+    // Backend only has PUT for upsert (create or update)
+    const response = await api.put<StoreCurrency>(
       `/stores/${storeId}/currencies`,
       data
     )
-    return response.data
+    return response
   }
 
+  // Backend only has PUT endpoint - no separate PATCH for update
   async updateStoreCurrency(
     storeId: string,
     currencyId: string,
     data: UpdateStoreCurrencyData
   ): Promise<StoreCurrency> {
-    const response = await api.patch<ApiResponse<StoreCurrency>>(
-      `/stores/${storeId}/currencies/${currencyId}`,
-      data
+    // Use PUT for upsert with currencyId
+    const response = await api.put<StoreCurrency>(
+      `/stores/${storeId}/currencies`,
+      {
+        currencyId,
+        ...data
+      }
     )
-    return response.data
+    return response
   }
 
-  async removeStoreCurrency(storeId: string, currencyId: string): Promise<void> {
-    await api.delete(`/stores/${storeId}/currencies/${currencyId}`)
+  // Backend has no DELETE endpoint - disable currency instead
+  async removeStoreCurrency(storeId: string, currencyId: string): Promise<StoreCurrency> {
+    // To "delete", set isEnabled: false
+    return this.updateStoreCurrency(storeId, currencyId, {
+      isEnabled: false,
+      minAmount: '0',
+      maxAmount: '0'
+    })
   }
 
   async configureCurrency(storeId: string, data: ConfigureCurrencyData): Promise<StoreCurrency> {
-    const response = await api.put<ApiResponse<StoreCurrency>>(
+    // Backend uses PUT for upsert operation
+    const response = await api.put<StoreCurrency>(
       `/stores/${storeId}/currencies`,
       {
         currencyId: data.currencyId,
@@ -124,7 +153,7 @@ class StoreService {
         isEnabled: data.isEnabled,
       }
     )
-    return response.data
+    return response
   }
 }
 

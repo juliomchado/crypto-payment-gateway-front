@@ -34,12 +34,9 @@ export interface AuthResponse {
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    interface BackendLoginResponse {
-      user: User
-      token: string
-    }
-    const response = await api.post<ApiResponse<BackendLoginResponse>>('/auth/login', credentials)
-    const userData = response.data.user
+    // api.ts now auto-extracts .data wrapper
+    const response = await api.post<any>('/auth/login', credentials)
+    const userData = response.user
 
     // Force MERCHANT role if user has a merchant record
     if (userData && (userData.merchant || userData.merchantId)) {
@@ -51,30 +48,41 @@ class AuthService {
     return { user: userData }
   }
 
-  async register(data: RegisterData): Promise<ApiResponse<User>> {
-    return api.post<ApiResponse<User>>('/auth/register', data)
+  async register(data: RegisterData): Promise<User> {
+    // api.ts now auto-extracts .data wrapper
+    const response = await api.post<any>('/auth/register', data)
+    return response.user || response
   }
 
   async logout(): Promise<void> {
-    return api.post('/auth/logout')
+    try {
+      await api.post('/auth/logout')
+    } finally {
+      // Force clear the token cookie client-side as fallback
+      if (typeof document !== 'undefined') {
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+      }
+    }
   }
 
-  async forgotPassword(email: string): Promise<ApiResponse<null>> {
-    return api.post<ApiResponse<null>>('/auth/forgot-password', { email })
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    // Backend returns { message } directly (not ApiResponse)
+    return api.post<{ message: string }>('/auth/forgot-password', { email })
   }
 
-  async resetPassword(data: ResetPasswordData): Promise<ApiResponse<null>> {
-    return api.post<ApiResponse<null>>('/auth/reset-password', data)
+  async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
+    // Backend returns { message } directly (not ApiResponse)
+    return api.post<{ message: string }>('/auth/reset-password', data)
   }
 
-  async verifyEmail(data: VerifyEmailData): Promise<ApiResponse<null>> {
-    return api.post<ApiResponse<null>>('/auth/verify-email', data)
+  async verifyEmail(data: VerifyEmailData): Promise<{ message: string }> {
+    // Backend returns { message } directly (not ApiResponse)
+    return api.post<{ message: string }>('/auth/verify-email', data)
   }
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await api.get<ApiResponse<User>>('/auth/me')
-      const userData = response.data
+      const userData = await api.get<User>('/auth/me')
 
       if (!userData || !userData.email) {
         return null
@@ -91,7 +99,8 @@ class AuthService {
       }
 
       return userData
-    } catch {
+    } catch (error) {
+      console.error('[AuthService] Error getting current user:', error)
       return null
     }
   }

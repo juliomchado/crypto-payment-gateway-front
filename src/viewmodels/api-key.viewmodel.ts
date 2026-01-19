@@ -2,13 +2,14 @@ import { create } from 'zustand'
 import {
   apiKeyService,
   type CreateApiKeyData,
-  type CreateApiKeyResponse,
+  type ApiKeyCreatedResponse,
+  type RotateApiKeyResponse,
 } from '@/services/api-key.service'
 import type { ApiKey } from '@/models/types'
 
 interface ApiKeyState {
   apiKeys: ApiKey[]
-  newlyCreatedKey: CreateApiKeyResponse | null
+  newlyCreatedKey: ApiKeyCreatedResponse | null
   isLoading: boolean
   error: string | null
 }
@@ -16,9 +17,9 @@ interface ApiKeyState {
 interface ApiKeyActions {
   fetchApiKeys: (storeId: string) => Promise<void>
   fetchAllApiKeys: () => Promise<void>
-  createApiKey: (data: CreateApiKeyData) => Promise<CreateApiKeyResponse | null>
+  createApiKey: (data: CreateApiKeyData) => Promise<ApiKeyCreatedResponse | null>
   revokeApiKey: (storeId: string, keyId: string) => Promise<boolean>
-  rotateApiKey: (storeId: string, keyId: string) => Promise<CreateApiKeyResponse | null>
+  rotateApiKey: (storeId: string, keyId: string) => Promise<RotateApiKeyResponse | null>
   clearNewlyCreatedKey: () => void
   clearError: () => void
 }
@@ -53,12 +54,24 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
     }
   },
 
-  createApiKey: async (data: CreateApiKeyData): Promise<CreateApiKeyResponse | null> => {
+  createApiKey: async (data: CreateApiKeyData): Promise<ApiKeyCreatedResponse | null> => {
     set({ isLoading: true, error: null })
     try {
+      // Backend returns flat object with id, key, secret, etc.
       const response = await apiKeyService.createApiKey(data)
+      // Convert to ApiKey format (without secret) for list
+      const apiKeyForList: ApiKey = {
+        id: response.id,
+        storeId: response.storeId,
+        name: response.name,
+        type: response.type as any,
+        key: response.key,
+        status: response.status as any,
+        createdAt: response.createdAt,
+        updatedAt: response.createdAt, // Use createdAt as updatedAt for new keys
+      }
       set((state) => ({
-        apiKeys: [...state.apiKeys, response.apiKey],
+        apiKeys: [...state.apiKeys, apiKeyForList],
         newlyCreatedKey: response,
         isLoading: false,
       }))
@@ -88,15 +101,36 @@ export const useApiKeyViewModel = create<ApiKeyViewModel>((set) => ({
     }
   },
 
-  rotateApiKey: async (storeId: string, keyId: string): Promise<CreateApiKeyResponse | null> => {
+  rotateApiKey: async (storeId: string, keyId: string): Promise<RotateApiKeyResponse | null> => {
     set({ isLoading: true, error: null })
     try {
+      // Backend returns { old: {...}, new: {...} } structure
       const response = await apiKeyService.rotateApiKey(storeId, keyId)
+      // Convert new key to ApiKey format for list
+      const newApiKeyForList: ApiKey = {
+        id: response.new.id,
+        storeId: storeId,
+        name: '', // Name is not returned in rotate response
+        type: 'PAYMENT' as any,
+        key: response.new.key,
+        status: response.new.status as any,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
       set((state) => ({
         apiKeys: state.apiKeys.map((key) =>
           key.id === keyId ? { ...key, status: 'REVOKED' as const } : key
-        ).concat(response.apiKey),
-        newlyCreatedKey: response,
+        ).concat(newApiKeyForList),
+        newlyCreatedKey: {
+          id: response.new.id,
+          storeId: storeId,
+          name: '',
+          type: 'PAYMENT',
+          key: response.new.key,
+          secret: response.new.secret,
+          status: response.new.status,
+          createdAt: new Date().toISOString(),
+        },
         isLoading: false,
       }))
       return response

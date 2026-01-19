@@ -47,8 +47,31 @@ class ApiService {
         window.location.href = '/login'
       }
 
+      // Extract error message - try different structures from backend
+      let errorMessage = 'An unexpected error occurred'
+
+      // Try direct message
+      if (errorData.message) {
+        errorMessage = errorData.message
+      }
+      // Try nested error.message
+      else if (errorData.error?.message) {
+        errorMessage = errorData.error.message
+      }
+      // Try issues array (Zod validation)
+      else if (errorData.issues && Array.isArray(errorData.issues)) {
+        errorMessage = errorData.issues.map((issue: any) => issue.message).join(', ')
+      }
+      // Try errors array
+      else if (errorData.errors && Array.isArray(errorData.errors)) {
+        errorMessage = errorData.errors.join(', ')
+      }
+
+      console.log(`[API] Status ${response.status} - Error message from backend: "${errorMessage}"`)
+      console.log(`[API] Raw error data:`, errorData)
+
       const error: ApiError = {
-        message: errorData.message || 'An unexpected error occurred',
+        message: errorMessage,
         statusCode: response.status,
         error: errorData.error,
       }
@@ -59,7 +82,15 @@ class ApiService {
       return {} as T
     }
 
-    return response.json()
+    const jsonData = await response.json()
+
+    // Backend pode retornar { success: true, data: T } ou T direto
+    // Extrair .data se existir, senão retornar direto
+    if (jsonData && typeof jsonData === 'object' && 'data' in jsonData) {
+      return jsonData.data as T
+    }
+
+    return jsonData as T
   }
 
   async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {

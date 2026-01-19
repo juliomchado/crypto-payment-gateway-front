@@ -27,7 +27,7 @@ export default function WebhooksPage() {
   const [statusFilter, setStatusFilter] = useState<WebhookDeliveryStatus | 'ALL'>('ALL')
 
   // Use store from URL param, or header selector, or first available store
-  const effectiveStoreId = storeIdParam || (!isAllStores ? activeStoreId : stores[0]?.id)
+  const effectiveStoreId = storeIdParam || (!isAllStores ? activeStoreId : (stores && stores.length > 0 ? stores[0].id : undefined))
 
   useEffect(() => {
     fetchStores()
@@ -97,8 +97,28 @@ export default function WebhooksPage() {
           onRetry={handleRetry}
         />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-12">
           <p className="text-muted-foreground">Please select a store to view webhook events</p>
+          {stores && stores.length > 0 && (
+            <Select
+              value=""
+              onValueChange={(value) => {
+                // Navigate to this page with storeId param
+                window.location.href = `/dashboard/webhooks?storeId=${value}`
+              }}
+            >
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select a store" />
+              </SelectTrigger>
+              <SelectContent>
+                {stores.map((store) => (
+                  <SelectItem key={store.id} value={store.id}>
+                    {store.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
     </div>

@@ -30,8 +30,9 @@ export const useWebhookViewModel = create<WebhookViewModel>((set) => ({
   ): Promise<void> => {
     set({ isLoading: true, error: null })
     try {
-      const webhookEvents = await webhookService.listWebhookEvents(storeId, query)
-      set({ webhookEvents, isLoading: false })
+      // Backend returns paginated response { data, pagination }
+      const response = await webhookService.listWebhookEvents(storeId, query)
+      set({ webhookEvents: response.data, isLoading: false })
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to fetch webhook events', isLoading: false })
@@ -52,15 +53,11 @@ export const useWebhookViewModel = create<WebhookViewModel>((set) => ({
   retryWebhookEvent: async (storeId: string, eventId: string): Promise<boolean> => {
     set({ isLoading: true, error: null })
     try {
-      const updatedEvent = await webhookService.retryWebhookEvent(storeId, eventId)
-      set((state) => ({
-        webhookEvents: state.webhookEvents.map((event) =>
-          event.id === eventId ? updatedEvent : event
-        ),
-        selectedEvent:
-          state.selectedEvent?.id === eventId ? updatedEvent : state.selectedEvent,
-        isLoading: false,
-      }))
+      // Backend returns { message, eventId } - webhook is queued for retry
+      await webhookService.retryWebhookEvent(storeId, eventId)
+      // Don't update the event in state since retry is async
+      // User should refetch to see updated status
+      set({ isLoading: false })
       return true
     } catch (err) {
       const error = err as { message?: string }

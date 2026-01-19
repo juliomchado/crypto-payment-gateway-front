@@ -11,7 +11,7 @@ class WebhookService {
   async listWebhookEvents(
     storeId: string,
     query?: ListWebhookEventsQuery
-  ): Promise<WebhookEvent[]> {
+  ): Promise<PaginatedResponse<WebhookEvent>> {
     const params = new URLSearchParams()
     const page = query?.page || 1
     const limit = query?.limit || 10
@@ -20,29 +20,42 @@ class WebhookService {
     if (query?.status) params.set('status', query.status)
     const searchParams = params.toString()
     const endpoint = `/stores/${storeId}/webhooks?${searchParams}`
-    const response = await api.get<ApiResponse<WebhookEvent[] | PaginatedResponse<WebhookEvent>>>(endpoint)
 
-    // Handle both flat array and paginated object
-    if (Array.isArray(response.data)) {
-      return response.data
-    } else if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
-      return response.data.data
+    // Backend always returns { data, pagination } structure
+    interface WebhookListResponse {
+      data: WebhookEvent[]
+      pagination: {
+        skip: number
+        take: number
+        total: number
+      }
     }
-    return []
+    const response = await api.get<WebhookListResponse>(endpoint)
+
+    // Return full paginated response
+    return {
+      data: response.data,
+      total: response.pagination.total,
+      page: Math.floor(response.pagination.skip / response.pagination.take) + 1,
+      limit: response.pagination.take,
+      totalPages: Math.ceil(response.pagination.total / response.pagination.take)
+    }
   }
 
   async getWebhookEvent(storeId: string, eventId: string): Promise<WebhookEvent> {
-    const response = await api.get<ApiResponse<WebhookEvent>>(
+    // Backend returns WebhookEvent directly (not wrapped in ApiResponse)
+    const response = await api.get<WebhookEvent>(
       `/stores/${storeId}/webhooks/${eventId}`
     )
-    return response.data
+    return response
   }
 
-  async retryWebhookEvent(storeId: string, eventId: string): Promise<WebhookEvent> {
-    const response = await api.post<ApiResponse<WebhookEvent>>(
+  async retryWebhookEvent(storeId: string, eventId: string): Promise<{ message: string; eventId: string }> {
+    // Backend returns { message, eventId } structure
+    const response = await api.post<{ message: string; eventId: string }>(
       `/stores/${storeId}/webhooks/${eventId}/retry`
     )
-    return response.data
+    return response
   }
 }
 

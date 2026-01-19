@@ -35,7 +35,9 @@ const registerSchema = z
       .string()
       .min(8, 'Password must be at least 8 characters')
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number')
+      .regex(/[\W_]/, 'Password must contain at least one special character'),
     confirmPassword: z.string(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the terms and conditions',
@@ -77,6 +79,7 @@ export function RegisterForm() {
   })
 
   const acceptTerms = watch('acceptTerms')
+  const password = watch('password') || ''
 
   const onSubmit = async (data: RegisterFormData) => {
     clearError()
@@ -124,12 +127,28 @@ export function RegisterForm() {
       }
     } else {
       console.error('Registration failed details:', error)
+
+      // Extract specific error message
+      let errorMessage = 'Validation failed. Check the fields and try again.'
+      if (error) {
+        // Check for common error patterns
+        if (error.includes('already exists') || error.includes('duplicate') || error.includes('409')) {
+          errorMessage = 'This email is already registered. Please use a different email or try logging in.'
+        } else if (error.includes('email')) {
+          errorMessage = error
+        } else if (error.includes('password')) {
+          errorMessage = error
+        } else {
+          errorMessage = error
+        }
+      }
+
       // Small delay to ensure authViewModel error state is updated
       setTimeout(() => {
         toast({
           variant: 'destructive',
           title: 'Registration failed',
-          description: error || 'Validation failed. Check the fields and try again.',
+          description: errorMessage,
         })
       }, 100)
     }
@@ -207,6 +226,28 @@ export function RegisterForm() {
             </div>
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
+            )}
+            {password && (
+              <div className="text-xs space-y-1 mt-2">
+                <p className="font-medium text-muted-foreground">Password requirements:</p>
+                <div className="grid grid-cols-2 gap-1">
+                  <p className={password.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}>
+                    {password.length >= 8 ? '✓' : '○'} At least 8 characters
+                  </p>
+                  <p className={/[A-Z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}>
+                    {/[A-Z]/.test(password) ? '✓' : '○'} One uppercase letter
+                  </p>
+                  <p className={/[a-z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}>
+                    {/[a-z]/.test(password) ? '✓' : '○'} One lowercase letter
+                  </p>
+                  <p className={/[0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}>
+                    {/[0-9]/.test(password) ? '✓' : '○'} One number
+                  </p>
+                  <p className={/[\W_]/.test(password) ? 'text-green-600 col-span-2' : 'text-muted-foreground col-span-2'}>
+                    {/[\W_]/.test(password) ? '✓' : '○'} One special character (!@#$%^&*...)
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 

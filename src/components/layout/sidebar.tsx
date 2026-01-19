@@ -88,7 +88,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
 
   const handleLogout = async () => {
     await logout()
-    router.push('/')
+    router.push('/login')
   }
 
   return (
