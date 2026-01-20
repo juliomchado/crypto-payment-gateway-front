@@ -84,9 +84,8 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     clearError()
 
-    // Detect country and language from browser
+    // Detect country from browser
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const detectedLanguage = navigator.language.split('-')[0] || 'en'
 
     // Simple timezone to country mapping fallback
     let country = 'Portugal'
@@ -126,31 +125,11 @@ export function RegisterForm() {
         router.push('/login')
       }
     } else {
-      console.error('Registration failed details:', error)
-
-      // Extract specific error message
-      let errorMessage = 'Validation failed. Check the fields and try again.'
-      if (error) {
-        // Check for common error patterns
-        if (error.includes('already exists') || error.includes('duplicate') || error.includes('409')) {
-          errorMessage = 'This email is already registered. Please use a different email or try logging in.'
-        } else if (error.includes('email')) {
-          errorMessage = error
-        } else if (error.includes('password')) {
-          errorMessage = error
-        } else {
-          errorMessage = error
-        }
-      }
-
-      // Small delay to ensure authViewModel error state is updated
-      setTimeout(() => {
-        toast({
-          variant: 'destructive',
-          title: 'Registration failed',
-          description: errorMessage,
-        })
-      }, 100)
+      toast({
+        variant: 'destructive',
+        title: 'Registration failed',
+        description: error || 'An unexpected error occurred',
+      })
     }
   }
 
