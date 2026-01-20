@@ -32,7 +32,7 @@ const STATUS_CONFIG = {
 }
 
 export default function AdminMerchantsPage() {
-  const { merchants, isLoading, fetchMerchants, updateMerchantStatus } = useMerchantViewModel()
+  const { merchants, isLoading, error, fetchMerchants, updateMerchantStatus } = useMerchantViewModel()
   const { toast } = useToast()
   const [filter, setFilter] = useState<'all' | 'pending'>('all')
 
@@ -53,7 +53,7 @@ export default function AdminMerchantsPage() {
     } else {
       toast({
         title: 'Error',
-        description: 'Failed to update merchant status',
+        description: error || 'Failed to update merchant status',
         variant: 'destructive',
       })
     }

@@ -19,7 +19,7 @@ import type { User, UserRole } from '@/models/types'
 
 export default function AdminUsersPage() {
   const { toast } = useToast()
-  const { users, isLoading, fetchUsers, updateUserRole, deleteUser } = useUserViewModel()
+  const { users, isLoading, error, fetchUsers, updateUserRole, deleteUser } = useUserViewModel()
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [deletingUser, setDeletingUser] = useState<User | null>(null)
@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
       toast({
         variant: 'destructive',
         title: 'Update failed',
-        description: 'Failed to update user role.',
+        description: error || 'Failed to update user role.',
       })
     }
   }
@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
       toast({
         variant: 'destructive',
         title: 'Delete failed',
-        description: 'Failed to delete user.',
+        description: error || 'Failed to delete user.',
       })
     }
     setDeletingUser(null)

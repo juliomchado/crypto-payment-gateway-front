@@ -80,11 +80,11 @@ export function CreateWalletDialog({ open, onOpenChange }: CreateWalletDialogPro
       })
       reset()
       onOpenChange(false)
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to create wallet. Please try again.',
+        description: error?.message || 'Failed to create wallet. Please try again.',
       })
     } finally {
       setIsSubmitting(false)

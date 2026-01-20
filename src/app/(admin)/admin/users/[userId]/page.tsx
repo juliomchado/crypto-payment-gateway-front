@@ -26,7 +26,7 @@ export default function UserDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   const userId = params.userId as string
-  const { selectedUser, isLoading, getUser, updateUserRole, deleteUser } = useUserViewModel()
+  const { selectedUser, isLoading, error, getUser, updateUserRole, deleteUser } = useUserViewModel()
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,7 +52,7 @@ export default function UserDetailPage() {
       toast({
         variant: 'destructive',
         title: 'Update failed',
-        description: 'Failed to update user role.',
+        description: error || 'Failed to update user role.',
       })
     }
   }
@@ -74,7 +74,7 @@ export default function UserDetailPage() {
       toast({
         variant: 'destructive',
         title: 'Delete failed',
-        description: 'Failed to delete user.',
+        description: error || 'Failed to delete user.',
       })
     }
     setIsDeleteDialogOpen(false)

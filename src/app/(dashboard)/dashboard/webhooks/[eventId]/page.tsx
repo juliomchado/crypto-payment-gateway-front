@@ -16,7 +16,7 @@ export default function WebhookEventDetailPage() {
   const { toast } = useToast()
   const eventId = params.eventId as string
   const storeId = searchParams.get('store') || ''
-  const { selectedEvent, isLoading, getWebhookEvent, retryWebhookEvent } =
+  const { selectedEvent, isLoading, error, getWebhookEvent, retryWebhookEvent } =
     useWebhookViewModel()
   const [isRetrying, setIsRetrying] = useState(false)
 
@@ -42,7 +42,7 @@ export default function WebhookEventDetailPage() {
       toast({
         variant: 'destructive',
         title: 'Retry failed',
-        description: 'Failed to retry the webhook event.',
+        description: error || 'Failed to retry the webhook event.',
       })
     }
   }

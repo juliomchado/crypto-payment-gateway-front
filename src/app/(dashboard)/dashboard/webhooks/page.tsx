@@ -21,7 +21,7 @@ export default function WebhooksPage() {
   const storeIdParam = searchParams.get('store')
   const { activeStoreId, isAllStores } = useActiveStore()
   const { toast } = useToast()
-  const { webhookEvents, isLoading, fetchWebhookEvents, retryWebhookEvent } =
+  const { webhookEvents, isLoading, error, fetchWebhookEvents, retryWebhookEvent } =
     useWebhookViewModel()
   const { stores, fetchStores } = useStoreViewModel()
   const [statusFilter, setStatusFilter] = useState<WebhookDeliveryStatus | 'ALL'>('ALL')
@@ -53,7 +53,7 @@ export default function WebhooksPage() {
       toast({
         variant: 'destructive',
         title: 'Retry failed',
-        description: 'Failed to retry the webhook event.',
+        description: error || 'Failed to retry the webhook event.',
       })
     }
   }

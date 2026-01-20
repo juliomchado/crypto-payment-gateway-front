@@ -41,11 +41,11 @@ export default function ForgotPasswordPage() {
         title: 'Email sent!',
         description: 'Check your inbox for password reset instructions.',
       })
-    } catch {
+    } catch (err: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to send reset email. Please try again.',
+        description: err?.message || 'Failed to send reset email. Please try again.',
       })
     } finally {
       setIsLoading(false)

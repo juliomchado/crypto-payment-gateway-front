@@ -113,7 +113,7 @@ export default function SetupPage() {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'An unexpected error occurred. Please try again.',
+          description: err?.message || 'An unexpected error occurred. Please try again.',
         })
       }
     } finally {

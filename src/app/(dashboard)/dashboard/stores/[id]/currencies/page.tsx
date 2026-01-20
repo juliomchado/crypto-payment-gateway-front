@@ -46,6 +46,7 @@ export default function StoreCurrenciesPage() {
     storeCurrencies,
     availableCurrencies,
     isLoading,
+    error,
     fetchStore,
     fetchStoreCurrencies,
     fetchAvailableCurrencies,
@@ -90,7 +91,7 @@ export default function StoreCurrenciesPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to add currency. Please try again.',
+        description: error || 'Failed to add currency. Please try again.',
       })
     }
   }
@@ -106,7 +107,7 @@ export default function StoreCurrenciesPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to remove currency. Please try again.',
+        description: error || 'Failed to remove currency. Please try again.',
       })
     }
   }

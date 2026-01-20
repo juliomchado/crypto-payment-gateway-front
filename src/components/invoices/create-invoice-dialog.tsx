@@ -158,11 +158,11 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
           description: 'Your invoice has been created successfully.',
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to create invoice. Please try again.',
+        description: error?.message || 'Failed to create invoice. Please try again.',
       })
     } finally {
       setIsSubmitting(false)

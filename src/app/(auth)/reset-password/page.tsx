@@ -72,11 +72,11 @@ function ResetPasswordForm() {
         description: 'You can now login with your new password.',
       })
       setTimeout(() => router.push('/login'), 2000)
-    } catch {
+    } catch (err: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to reset password. The link may have expired.',
+        description: err?.message || 'Failed to reset password. The link may have expired.',
       })
     } finally {
       setIsLoading(false)
