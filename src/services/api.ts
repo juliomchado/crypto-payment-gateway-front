@@ -22,7 +22,7 @@ class ApiService {
     const config: RequestInit = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },
       credentials: 'include',
