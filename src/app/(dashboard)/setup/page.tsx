@@ -65,57 +65,20 @@ export default function SetupPage() {
         await checkAuth(true)
         await refetch()
 
-        router.push('/dashboard')
-      } else {
-        // Check if the error is a 409 (merchant already exists)
-        const is409Error = merchantError?.includes('409') ||
-          merchantError?.toLowerCase().includes('already exists') ||
-          merchantError?.toLowerCase().includes('conflict')
-
-        if (is409Error) {
-          console.log('[Setup] Merchant already exists (409), redirecting to dashboard')
-          toast({
-            title: 'Merchant account found',
-            description: 'Redirecting to your dashboard...',
-          })
-
-          // Force refresh to get the existing merchant
-          await checkAuth(true)
-          await refetch()
-
-          router.push('/dashboard')
-        } else {
-          toast({
-            variant: 'destructive',
-            title: 'Setup failed',
-            description: merchantError || 'Failed to create merchant account. Please try again.',
-          })
-        }
-      }
-    } catch (err: any) {
-      // Also check for 409 in catch block
-      const is409Error = err?.statusCode === 409 ||
-        err?.status === 409 ||
-        err?.message?.includes('409') ||
-        err?.message?.toLowerCase().includes('conflict')
-
-      if (is409Error) {
-        console.log('[Setup] Merchant already exists (409 in catch), redirecting to dashboard')
-        toast({
-          title: 'Merchant account found',
-          description: 'Redirecting to your dashboard...',
-        })
-
-        await checkAuth(true)
-        await refetch()
-        router.push('/dashboard')
+        // Merchant context will update and useEffect will handle redirect
       } else {
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: err?.message || 'An unexpected error occurred. Please try again.',
+          title: 'Setup failed',
+          description: merchantError || 'Failed to create merchant account. Please try again.',
         })
       }
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'An unexpected error occurred. Please try again.',
+      })
     } finally {
       setIsSubmitting(false)
     }

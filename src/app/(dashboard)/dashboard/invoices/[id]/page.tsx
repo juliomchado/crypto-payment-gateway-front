@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Copy, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { useInvoiceViewModel } from '@/viewmodels/invoice.viewmodel'
 import { useToast } from '@/hooks/use-toast'
-import { formatCurrency, formatDateTime, shortenAddress, copyToClipboard } from '@/lib/utils'
+import { formatCurrency, formatDateTime, shortenAddress, copyToClipboard, isValidUUID } from '@/lib/utils'
 import { NETWORK_NAMES } from '@/models/types'
 
 export default function InvoiceDetailPage() {
@@ -20,6 +20,11 @@ export default function InvoiceDetailPage() {
   const invoiceId = params.id as string
   const { selectedInvoice, isLoading, fetchInvoice } = useInvoiceViewModel()
   const { toast } = useToast()
+
+  // Validate UUID format early
+  if (!isValidUUID(invoiceId)) {
+    notFound()
+  }
 
   useEffect(() => {
     fetchInvoice(invoiceId)

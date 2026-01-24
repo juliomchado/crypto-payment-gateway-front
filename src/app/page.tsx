@@ -1,8 +1,16 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Shield, Zap, Globe } from 'lucide-react'
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
+
+  if (token) {
+    redirect('/dashboard')
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-background">

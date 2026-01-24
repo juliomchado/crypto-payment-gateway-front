@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useStoreViewModel } from '@/viewmodels/store.viewmodel'
-import { formatDate, formatCurrency } from '@/lib/utils'
+import { formatDate, formatCurrency, isValidUUID } from '@/lib/utils'
 import { Store, Key, ArrowLeft, Settings, Edit, Globe, Clock, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 
@@ -19,6 +20,11 @@ export default function StoreDetailsPage() {
   const storeId = params.id as string
   const { stores, fetchStores } = useStoreViewModel()
   const [isLoading, setIsLoading] = useState(true)
+
+  // Validate UUID format early
+  if (!isValidUUID(storeId)) {
+    notFound()
+  }
 
   useEffect(() => {
     const loadStore = async () => {

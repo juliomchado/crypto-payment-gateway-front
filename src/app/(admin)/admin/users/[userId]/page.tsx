@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, notFound } from 'next/navigation'
 import { ArrowLeft, UserCog, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserDetailCard } from '@/components/admin/user-detail-card'
@@ -19,6 +19,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUserViewModel } from '@/viewmodels/user.viewmodel'
 import { useToast } from '@/hooks/use-toast'
+import { isValidUUID } from '@/lib/utils'
 import type { UserRole } from '@/models/types'
 
 export default function UserDetailPage() {
@@ -30,6 +31,11 @@ export default function UserDetailPage() {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Validate UUID format early
+  if (!isValidUUID(userId)) {
+    notFound()
+  }
 
   useEffect(() => {
     if (userId) {

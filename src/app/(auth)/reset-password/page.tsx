@@ -32,10 +32,8 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
-function ResetPasswordForm() {
+function ResetPasswordForm({ token }: { token: string | null }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -231,6 +229,12 @@ function ResetPasswordForm() {
   )
 }
 
+function ResetPasswordWrapper() {
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  return <ResetPasswordForm token={token} />
+}
+
 export default function ResetPasswordPage() {
   return (
     <Suspense
@@ -242,7 +246,7 @@ export default function ResetPasswordPage() {
         </Card>
       }
     >
-      <ResetPasswordForm />
+      <ResetPasswordWrapper />
     </Suspense>
   )
 }

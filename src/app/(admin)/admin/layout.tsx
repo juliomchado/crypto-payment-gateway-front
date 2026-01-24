@@ -1,49 +1,50 @@
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
-import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
-import { Loader2 } from 'lucide-react'
 
-export default function AdminLayout({
+async function verifyAdminAccess() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
+
+  if (!token) {
+    redirect('/login')
+  }
+
+  // Call backend to get current user with role validation
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: {
+        'Cookie': `token=${token}`,
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      redirect('/login')
+    }
+
+    const userData = await response.json()
+    const user = userData.data || userData
+
+    // Strict server-side admin check
+    if (user.role !== 'ADMIN') {
+      redirect('/dashboard')
+    }
+
+    return user
+  } catch (error) {
+    redirect('/login')
+  }
+}
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
-  const { user, isAuthenticated, isLoading, checkAuth } = useAuthViewModel()
-
-  useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
-
-  useEffect(() => {
-    // Redirect if not authenticated or not admin
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push('/login')
-      } else if (user && user.role !== 'ADMIN') {
-        // MERCHANT goes to dashboard, USER goes to home (they only make payments)
-        router.push(user.role === 'MERCHANT' ? '/dashboard' : '/')
-      }
-    }
-  }, [isAuthenticated, isLoading, user, router])
-
-  // Show loading while checking auth
-  if (isLoading || !user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
-  // Only render if user is admin
-  if (user.role !== 'ADMIN') {
-    return null
-  }
+  // Server-side admin validation - runs before any client code
+  await verifyAdminAccess()
 
   return (
     <div className="flex h-screen flex-col">

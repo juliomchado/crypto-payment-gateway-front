@@ -15,19 +15,29 @@ export default function WebhookEventDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   const eventId = params.eventId as string
-  const storeId = searchParams.get('store') || ''
+  const storeId = searchParams.get('store')
   const { selectedEvent, isLoading, error, getWebhookEvent, retryWebhookEvent } =
     useWebhookViewModel()
   const [isRetrying, setIsRetrying] = useState(false)
 
   useEffect(() => {
+    if (!storeId) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing store parameter',
+        description: 'Redirecting to webhooks list...',
+      })
+      router.push('/dashboard/webhooks')
+      return
+    }
+
     if (storeId && eventId) {
       getWebhookEvent(storeId, eventId)
     }
-  }, [storeId, eventId, getWebhookEvent])
+  }, [storeId, eventId, getWebhookEvent, router, toast])
 
   const handleRetry = async () => {
-    if (!selectedEvent) return
+    if (!selectedEvent || !storeId) return
 
     setIsRetrying(true)
     const success = await retryWebhookEvent(storeId, selectedEvent.id)
@@ -48,10 +58,10 @@ export default function WebhookEventDetailPage() {
   }
 
   const handleBack = () => {
-    router.push(`/dashboard/webhooks?store=${storeId}`)
+    router.push(`/dashboard/webhooks${storeId ? `?store=${storeId}` : ''}`)
   }
 
-  if (isLoading || !selectedEvent) {
+  if (!storeId || isLoading || !selectedEvent) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-64" />
