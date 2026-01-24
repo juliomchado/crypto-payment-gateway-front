@@ -85,9 +85,14 @@ class StoreService {
   }
 
   async updateStore(id: string, data: UpdateStoreData): Promise<Store> {
-    // Backend returns Store directly (not wrapped in ApiResponse)
-    const response = await api.patch<Store>(`/stores/${id}`, data)
-    return response
+    // Backend returns { store: Store } structure
+    const response = await api.patch<{ store: Store } | Store>(`/stores/${id}`, data)
+
+    if ('store' in response) {
+      return response.store
+    }
+
+    return response as Store
   }
 
   async deleteStore(id: string): Promise<void> {
@@ -110,7 +115,11 @@ class StoreService {
     // Backend only has PUT for upsert (create or update)
     const response = await api.put<StoreCurrency>(
       `/stores/${storeId}/currencies`,
-      data
+      {
+        ...data,
+        minAmount: Number(data.minAmount),
+        maxAmount: Number(data.maxAmount),
+      }
     )
     return response
   }
@@ -126,7 +135,9 @@ class StoreService {
       `/stores/${storeId}/currencies`,
       {
         currencyId,
-        ...data
+        ...data,
+        minAmount: data.minAmount ? Number(data.minAmount) : undefined,
+        maxAmount: data.maxAmount ? Number(data.maxAmount) : undefined,
       }
     )
     return response
@@ -148,8 +159,8 @@ class StoreService {
       `/stores/${storeId}/currencies`,
       {
         currencyId: data.currencyId,
-        minAmount: data.minAmount,
-        maxAmount: data.maxAmount,
+        minAmount: Number(data.minAmount),
+        maxAmount: Number(data.maxAmount),
         isEnabled: data.isEnabled,
       }
     )

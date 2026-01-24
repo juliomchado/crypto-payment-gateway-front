@@ -63,8 +63,19 @@ next-env.d.ts
 
 # Claude Code temporary documentation
 .claude/
-# *.md
+
+# Temporary documentation files
+*_TODO.md
+*_SUMMARY.md
+*_GUIDE.md
+*_IMPROVEMENTS.md
+*_REFERENCE.md
+*_ERROR*.md
+all_files*.txt
+test-*.js
+
+# Keep important documentation
 !README.md
 !CONTRIBUTING.md
 !CHANGELOG.md
-!docs/
+!docs/**/*.md

@@ -2,19 +2,20 @@ import { api } from './api'
 import type { Invoice, PaymentStatus, ApiResponse, PaginatedResponse } from '@/models/types'
 
 export interface CreateInvoiceData {
-  // Header
+  // Required fields
   store: string
-  // Body (Mandatory)
   amount: string
   currency: string
   orderId: string
-  title: string
-  description: string
-  fromReferralCode: string | null
-  urlCallback: string
-  urlSuccess: string
-  urlReturn: string
-  // Optional
+
+  // Optional fields
+  customerEmail?: string
+  title?: string
+  description?: string
+  fromReferralCode?: string | null
+  urlCallback?: string
+  urlSuccess?: string
+  urlReturn?: string
   lifespan?: number
   isPaymentMultiple?: boolean
   accuracyPaymentPercent?: number

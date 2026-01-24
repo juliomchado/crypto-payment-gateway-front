@@ -22,7 +22,9 @@
       "Bash(curl:*)",
       "Bash(node test-with-existing-user.js:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Read(//c/Users/USER/Documents/Projetos/crypto-payment-gateway/crypto-payment-gateway/src/shared/errors/invoice/**)",
+      "Read(//c/Users/USER/Documents/Projetos/crypto-payment-gateway/crypto-payment-gateway/src/routes/**)"
     ]
   }
 }

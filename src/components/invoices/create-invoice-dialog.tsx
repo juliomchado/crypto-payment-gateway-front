@@ -40,7 +40,11 @@ const createInvoiceSchema = z.object({
     .refine((val) => !val || (val.length >= 3 && val.length <= 500), 'Description must be between 3-500 characters'),
   customerEmail: z.string().optional()
     .refine((val) => !val || z.string().email().safeParse(val).success, 'Must be a valid email'),
-  lifespan: z.string().min(1, 'Expiration time is required'),
+  lifespan: z.string().min(1, 'Expiration time is required')
+    .refine((val) => {
+      const num = Number(val)
+      return num >= 300 && num <= 43200
+    }, 'Lifespan must be between 300 (5 min) and 43200 (12 hours) seconds'),
   isPaymentMultiple: z.boolean().optional(),
   accuracyPaymentPercent: z.string().optional(),
 })
@@ -137,15 +141,16 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
         orderId: data.orderId,
         amount: data.amount.toString(),
         currency: data.currency,
+        customerEmail: data.customerEmail,
         title: data.title || `Invoice for ${data.amount} ${data.currency}`,
         description: data.description || `Order ${data.orderId}`,
         fromReferralCode: null,
-        urlCallback: selectedStore.urlCallback || 'https://example.com/callback',
-        urlSuccess: selectedStore.urlSuccess || 'https://example.com/success',
-        urlReturn: selectedStore.urlReturn || 'https://example.com/return',
+        urlCallback: selectedStore.urlCallback || undefined,
+        urlSuccess: selectedStore.urlSuccess || undefined,
+        urlReturn: selectedStore.urlReturn || undefined,
         lifespan: Number(data.lifespan),
         isPaymentMultiple: data.isPaymentMultiple,
-        accuracyPaymentPercent: data.accuracyPaymentPercent ? Number(data.accuracyPaymentPercent) : undefined,
+        accuracyPaymentPercent: data.accuracyPaymentPercent !== undefined ? Number(data.accuracyPaymentPercent) : undefined,
       })
 
       if (invoice) {
@@ -159,6 +164,19 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
         })
       }
     } catch (error: any) {
+      console.error('[CreateInvoice] Error creating invoice:', error)
+      console.error('[CreateInvoice] Payload sent:', {
+        store: data.storeId,
+        orderId: data.orderId,
+        amount: data.amount,
+        currency: data.currency,
+        customerEmail: data.customerEmail,
+        title: data.title,
+        description: data.description,
+        lifespan: data.lifespan,
+        isPaymentMultiple: data.isPaymentMultiple,
+        accuracyPaymentPercent: data.accuracyPaymentPercent,
+      })
       toast({
         variant: 'destructive',
         title: 'Error',
