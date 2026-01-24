@@ -55,13 +55,10 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    try {
-      await api.post('/auth/logout')
-    } finally {
-      // Force clear the token cookie client-side as fallback
-      if (typeof document !== 'undefined') {
-        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-      }
+    // Backend doesn't have logout endpoint - clear cookie client-side
+    // This is sufficient for JWT-based auth as tokens are stateless
+    if (typeof document !== 'undefined') {
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     }
   }
 
