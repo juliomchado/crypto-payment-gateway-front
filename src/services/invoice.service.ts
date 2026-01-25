@@ -1,4 +1,5 @@
 import { api } from './api'
+import { CONFIG } from '@/lib/config'
 import type { Invoice, PaymentStatus, ApiResponse, PaginatedResponse } from '@/models/types'
 
 export interface CreateInvoiceData {
@@ -56,30 +57,50 @@ class InvoiceService {
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
-    // Backend returns { data, pagination } structure directly
-    interface InvoiceListResponse {
-      data: Invoice[]
-      pagination: {
-        page: number
-        limit: number
-        total: number
-        totalPages: number
-      }
+    // Make raw fetch to get full response structure (data + meta)
+    const response = await fetch(`${CONFIG.API_URL}/v1/invoice?${params.toString()}`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch invoices: ${response.statusText}`)
     }
-    const response = await api.get<InvoiceListResponse>(`/v1/invoice?${params.toString()}`)
-    // Return full response with pagination info
+
+    const jsonData = await response.json()
+
+    // Backend returns { success: true, data: Invoice[], meta: { total, page, limit, totalPages } }
+    const invoices = jsonData.data || []
+    const meta = jsonData.meta || { total: 0, page: 1, limit: 10, totalPages: 0 }
+
     return {
-      data: response.data,
-      total: response.pagination.total,
-      page: response.pagination.page,
-      limit: response.pagination.limit,
-      totalPages: response.pagination.totalPages
+      data: invoices,
+      total: meta.total,
+      page: meta.page,
+      limit: meta.limit,
+      totalPages: meta.totalPages
     }
   }
 
   async getInvoice(id: string): Promise<Invoice> {
     const response = await api.get<any>(`/v1/invoice/${id}`)
-    return response.data || response
+    const invoice = response.data || response
+
+    // Map invoiceExchangeRates to rates if present
+    if (invoice.invoiceExchangeRates) {
+      invoice.rates = invoice.invoiceExchangeRates.map((rate: any) => ({
+        currencyId: rate.currencyId,
+        networkId: rate.currency?.network?.id || rate.currency?.networkId,
+        rate: rate.rate,
+        payerAmount: rate.payerAmount
+      }))
+    }
+
+    // Map nested address object to flat paymentAddress property
+    if (invoice.address?.address) {
+      invoice.paymentAddress = invoice.address.address
+    }
+
+    return invoice
   }
 
   async createInvoice(data: CreateInvoiceData): Promise<Invoice> {
@@ -98,7 +119,24 @@ class InvoiceService {
 
   async getPublicInvoice(id: string): Promise<Invoice> {
     const response = await api.get<any>(`/v1/invoice/${id}`)
-    return response.data || response
+    const invoice = response.data || response
+
+    // Map invoiceExchangeRates to rates if present
+    if (invoice.invoiceExchangeRates) {
+      invoice.rates = invoice.invoiceExchangeRates.map((rate: any) => ({
+        currencyId: rate.currencyId,
+        networkId: rate.currency?.network?.id || rate.currency?.networkId,
+        rate: rate.rate,
+        payerAmount: rate.payerAmount
+      }))
+    }
+
+    // Map nested address object to flat paymentAddress property
+    if (invoice.address?.address) {
+      invoice.paymentAddress = invoice.address.address
+    }
+
+    return invoice
   }
 
   async getInvoiceTransactions(id: string): Promise<any[]> {

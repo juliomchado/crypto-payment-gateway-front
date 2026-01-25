@@ -15,6 +15,7 @@ export interface ApiKeyCreatedResponse {
   type: string
   key: string
   secret: string  // Only visible once!
+  hint: string    // Added to match backend
   status: string
   createdAt: string
 }
@@ -29,19 +30,15 @@ export interface RotateApiKeyResponse {
     id: string
     key: string
     secret: string  // Only visible once!
+    hint: string    // Added to match backend
     status: 'ACTIVE'
   }
 }
 
 class ApiKeyService {
   async getApiKeys(storeId: string): Promise<ApiKey[]> {
-    // Backend returns { data, total } structure
-    interface ListApiKeysResponse {
-      data: ApiKey[]
-      total: number
-    }
-    const response = await api.get<ListApiKeysResponse>(`/store/${storeId}/api-keys`)
-    return response.data
+    // Api wrapper already extracts .data from { success: true, data: [...] }
+    return await api.get<ApiKey[]>(`/store/${storeId}/api-keys`)
   }
 
   async getAllApiKeys(): Promise<ApiKey[]> {

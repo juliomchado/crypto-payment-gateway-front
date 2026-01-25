@@ -39,11 +39,10 @@ export default function ApiKeysPage() {
   useEffect(() => {
     if (activeStoreId && !isAllStores) {
       fetchApiKeys(activeStoreId)
-    } else {
-      fetchAllApiKeys()
     }
+    // Always ensure stores are loaded to validate activeStoreId
     fetchStores()
-  }, [activeStoreId, isAllStores, fetchApiKeys, fetchAllApiKeys, fetchStores])
+  }, [activeStoreId, isAllStores, fetchApiKeys, fetchStores])
 
   const handleCreateKey = async (data: {
     storeId: string
@@ -54,14 +53,20 @@ export default function ApiKeysPage() {
     const result = await createApiKey(data)
     setIsSubmitting(false)
 
-    if (result) {
+    if (result.success && result.data) {
       toast({
         title: 'API Key created',
         description: 'Your new API key has been generated.',
       })
-      return { secretKey: result.key }
+      return { secretKey: result.data.key }
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error creating key',
+        description: result.error || 'Failed to create API key',
+      })
+      return null
     }
-    return null
   }
 
   const handleRevokeKey = async () => {
@@ -119,6 +124,31 @@ export default function ApiKeysPage() {
   const filteredKeys = filterStoreId
     ? apiKeys.filter((key) => key.storeId === filterStoreId)
     : apiKeys
+
+  // Show message when "All Stores" is selected
+  if (isAllStores) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">API Keys</h1>
+            <p className="text-muted-foreground">
+              Manage API keys for accessing the payment gateway API.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950/20">
+          <h3 className="mb-2 font-semibold text-amber-900 dark:text-amber-100">
+            Select a Store
+          </h3>
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            API keys are store-specific. Please select a store from the dropdown to view and manage its API keys.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

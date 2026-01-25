@@ -79,16 +79,14 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onRotate, onCopy }: 
         <TableBody>
           {apiKeys.map((apiKey) => {
             const isVisible = visibleKeys.has(apiKey.id)
-            const displayKey = isVisible
-              ? `pk_live_${'*'.repeat(28)}${apiKey.key.slice(-4)}`
-              : `pk_live_${'•'.repeat(28)}${apiKey.key.slice(-4)}`
+            const displayKey = isVisible ? apiKey.key : apiKey.hint
 
             return (
               <TableRow key={apiKey.id}>
                 <TableCell className="font-medium">{apiKey.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs">{displayKey}</code>
+                    <code className="text-xs w-[300px] truncate block" title={displayKey}>{displayKey}</code>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -123,10 +121,10 @@ export function ApiKeyTable({ apiKeys, isLoading, onRevoke, onRotate, onCopy }: 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onCopy?.(`pk_live_${'*'.repeat(28)}${apiKey.key.slice(-4)}`)}
+                        onClick={() => onCopy?.(apiKey.key)}
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy Key Hint
+                        Copy Key
                       </DropdownMenuItem>
                       {apiKey.status === 'ACTIVE' && (
                         <>

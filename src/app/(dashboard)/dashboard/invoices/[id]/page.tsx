@@ -18,7 +18,7 @@ export default function InvoiceDetailPage() {
   const params = useParams()
   const router = useRouter()
   const invoiceId = params.id as string
-  const { selectedInvoice, isLoading, fetchInvoice } = useInvoiceViewModel()
+  const { selectedInvoice, isLoading, transactions, fetchInvoice, fetchInvoiceTransactions } = useInvoiceViewModel()
   const { toast } = useToast()
 
   // Validate UUID format early
@@ -28,7 +28,8 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     fetchInvoice(invoiceId)
-  }, [invoiceId, fetchInvoice])
+    fetchInvoiceTransactions(invoiceId)
+  }, [invoiceId, fetchInvoice, fetchInvoiceTransactions])
 
   const handleCopy = async (text: string, label: string) => {
     try {
@@ -111,6 +112,20 @@ export default function InvoiceDetailPage() {
               <span className="text-sm font-medium">{selectedInvoice.orderId}</span>
             </div>
 
+            {selectedInvoice.title && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Title</span>
+                <span className="text-sm font-medium">{selectedInvoice.title}</span>
+              </div>
+            )}
+
+            {selectedInvoice.description && (
+              <div className="space-y-1">
+                <span className="text-sm text-muted-foreground">Description</span>
+                <p className="text-sm">{selectedInvoice.description}</p>
+              </div>
+            )}
+
             <Separator />
 
             <div className="flex items-center justify-between">
@@ -120,11 +135,36 @@ export default function InvoiceDetailPage() {
               </span>
             </div>
 
-            {selectedInvoice.cryptoCurrency && (
+            {(selectedInvoice.payer_currency || selectedInvoice.cryptoCurrency) && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Crypto Amount</span>
                 <span className="text-sm font-medium">
-                  {selectedInvoice.cryptoAmount} {selectedInvoice.cryptoCurrency}
+                  {selectedInvoice.payer_amount || selectedInvoice.cryptoAmount}{' '}
+                  {selectedInvoice.payer_currency || selectedInvoice.cryptoCurrency}
+                </span>
+              </div>
+            )}
+
+            {selectedInvoice.exchangeRate && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Exchange Rate</span>
+                <span className="text-sm font-medium">
+                  1 {selectedInvoice.payer_currency || selectedInvoice.cryptoCurrency} = $
+                  {(1 / parseFloat(selectedInvoice.exchangeRate)).toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            {selectedInvoice.payment_amount && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Amount Paid</span>
+                <span className="text-sm font-medium text-success">
+                  {selectedInvoice.payment_amount} {selectedInvoice.payer_currency || selectedInvoice.cryptoCurrency}
+                  {selectedInvoice.payment_amount_fiat && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      (${selectedInvoice.payment_amount_fiat})
+                    </span>
+                  )}
                 </span>
               </div>
             )}
@@ -199,6 +239,24 @@ export default function InvoiceDetailPage() {
               </div>
             )}
 
+            {selectedInvoice.paidAt && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Paid At</span>
+                <span className="text-sm font-medium">
+                  {formatDateTime(selectedInvoice.paidAt)}
+                </span>
+              </div>
+            )}
+
+            {selectedInvoice.confirmedAt && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Confirmed At</span>
+                <span className="text-sm font-medium">
+                  {formatDateTime(selectedInvoice.confirmedAt)}
+                </span>
+              </div>
+            )}
+
             {selectedInvoice.status === 'PENDING' && (
               <div className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
                 <p className="text-sm font-medium">Awaiting Payment</p>
@@ -232,6 +290,53 @@ export default function InvoiceDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {transactions && transactions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Transaction History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {transactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {tx.amount} {tx.currency}
+                      </span>
+                      <StatusBadge status={tx.status} />
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>Hash:</span>
+                      <code className="rounded bg-muted px-1">{shortenAddress(tx.hash)}</code>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4"
+                        onClick={() => handleCopy(tx.hash, 'Transaction hash')}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    {tx.confirmations !== undefined && (
+                      <p className="text-xs text-muted-foreground">
+                        Confirmations: {tx.confirmations}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right text-xs text-muted-foreground">
+                    {formatDateTime(tx.createdAt)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

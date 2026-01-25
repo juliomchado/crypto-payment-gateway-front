@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,13 +35,17 @@ export default function PaymentPage() {
     reset,
   } = usePaymentViewModel()
 
+  // Initialize payment only on invoiceId change
+  // Note: Zustand functions are stable and don't need to be in dependencies
   useEffect(() => {
     if (invoiceId) {
       initializePayment(invoiceId)
     }
     return () => reset()
-  }, [invoiceId, initializePayment, reset])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoiceId])
 
+  // Timer countdown
   useEffect(() => {
     if (step === 'awaiting_payment' && timeRemaining > 0) {
       const interval = setInterval(() => {
@@ -49,7 +53,46 @@ export default function PaymentPage() {
       }, 1000)
       return () => clearInterval(interval)
     }
-  }, [step, timeRemaining, updateTimeRemaining])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, timeRemaining])
+
+  // Poll payment status with progressive backoff strategy
+  useEffect(() => {
+    if ((step === 'awaiting_payment' || step === 'confirming') && invoice?.id) {
+      let pollCount = 0
+
+      const poll = async () => {
+        try {
+          await initializePayment(invoice.id)
+          pollCount++
+        } catch (error) {
+          console.error('Error polling payment status:', error)
+        }
+      }
+
+      // Progressive polling intervals to reduce server load:
+      // First 2 minutes: every 10 seconds (fast detection)
+      // After 2 minutes: every 30 seconds (reduced load)
+      const getInterval = () => {
+        return pollCount < 12 ? 10000 : 30000 // 12 polls * 10s = 2 minutes
+      }
+
+      const scheduleNextPoll = () => {
+        return setTimeout(() => {
+          poll().then(() => {
+            if ((step === 'awaiting_payment' || step === 'confirming') && invoice?.id) {
+              timeoutId = scheduleNextPoll()
+            }
+          })
+        }, getInterval())
+      }
+
+      let timeoutId = scheduleNextPoll()
+
+      return () => clearTimeout(timeoutId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, invoice?.id])
 
   const handleCurrencySelect = (currency: typeof selectedCurrency) => {
     if (!currency || !invoice) return
@@ -57,11 +100,16 @@ export default function PaymentPage() {
   }
 
   const handleContinue = async () => {
-    if (!selectedCurrency || !invoice) return
-    await generateAddress({
+    if (!selectedCurrency || !invoice) {
+      return
+    }
+
+    const addressData = {
       token: selectedCurrency.currency.symbol,
       network: selectedCurrency.currency.network?.standard || selectedCurrency.currency.network?.name || selectedCurrency.currency.networkId,
-    })
+    }
+
+    await generateAddress(addressData)
   }
 
   const handleBackToSelection = () => {
@@ -73,17 +121,27 @@ export default function PaymentPage() {
     setSelectedNetwork(network)
   }
 
-  // Get available networks from currencies
-  const availableNetworks = Array.from(
-    new Set(storeCurrencies.map((sc) => sc.currency.network?.name || sc.currency.networkId).filter(Boolean))
-  ) as string[]
+  // Get available networks from currencies (memoized to prevent infinite loops)
+  const availableNetworks = useMemo(() => {
+    const networks = Array.from(
+      new Set(
+        storeCurrencies.map((sc) => {
+          // Try multiple ways to get network name
+          const network = sc.currency?.network
+          return network?.name || network?.title || network?.standard || sc.currency?.networkId || 'Unknown'
+        }).filter(n => n !== 'Unknown')
+      )
+    ) as string[]
+
+    return networks
+  }, [storeCurrencies])
 
   // Filter currencies by selected network (case-insensitive)
   const filteredCurrencies = selectedNetwork
     ? storeCurrencies.filter((sc) => {
-        const networkName = sc.currency.network?.name || sc.currency.networkId
-        return networkName?.toLowerCase() === selectedNetwork.toLowerCase()
-      })
+      const networkName = sc.currency.network?.name || sc.currency.networkId
+      return networkName?.toLowerCase() === selectedNetwork.toLowerCase()
+    })
     : []
 
   if (step === 'loading' || isLoading) {

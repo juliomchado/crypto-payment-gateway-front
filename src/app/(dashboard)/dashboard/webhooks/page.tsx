@@ -33,6 +33,7 @@ export default function WebhooksPage() {
     fetchStores()
   }, [fetchStores])
 
+  // Fetch webhooks when store is selected
   useEffect(() => {
     if (effectiveStoreId) {
       const query = statusFilter !== 'ALL' ? { status: statusFilter } : undefined
@@ -89,37 +90,17 @@ export default function WebhooksPage() {
         </div>
       </div>
 
-      {effectiveStoreId ? (
+      {!effectiveStoreId ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
+          <p className="text-muted-foreground">Select a store to view webhooks</p>
+        </div>
+      ) : (
         <WebhookEventTable
           webhookEvents={webhookEvents}
           storeId={effectiveStoreId}
           isLoading={isLoading}
           onRetry={handleRetry}
         />
-      ) : (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-12">
-          <p className="text-muted-foreground">Please select a store to view webhook events</p>
-          {stores && stores.length > 0 && (
-            <Select
-              value=""
-              onValueChange={(value) => {
-                // Navigate to this page with storeId param
-                window.location.href = `/dashboard/webhooks?storeId=${value}`
-              }}
-            >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select a store" />
-              </SelectTrigger>
-              <SelectContent>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
       )}
     </div>
   )

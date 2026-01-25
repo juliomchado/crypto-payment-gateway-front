@@ -30,9 +30,14 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
     try {
       const response = await authService.login(credentials)
 
-      // Persist user session in localStorage for MOCK mode
-      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
-        localStorage.setItem('mock_user', JSON.stringify(response.user))
+      // Clear any logout flags
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('logging_out')
+
+        // Persist user session in localStorage for MOCK mode
+        if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
+          localStorage.setItem('mock_user', JSON.stringify(response.user))
+        }
       }
 
       set({
@@ -86,6 +91,17 @@ export const useAuthViewModel = create<AuthViewModel>((set) => ({
   },
 
   checkAuth: async (force = false): Promise<void> => {
+    // Check if user is logging out
+    if (typeof window !== 'undefined' && localStorage.getItem('logging_out') === 'true') {
+      localStorage.removeItem('logging_out')
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
+      return
+    }
+
     const currentState = useAuthViewModel.getState()
 
     if (!force && currentState.isAuthenticated && currentState.user) {

@@ -33,6 +33,17 @@ export function StoreSelector() {
     }
   }, [activeStoreId, stores, setActiveStoreId])
 
+  // Validate activeStoreId against fetched stores to prevent stale IDs
+  useEffect(() => {
+    if (activeStoreId && activeStoreId !== ALL_STORES_VALUE && stores.length > 0) {
+      const isValid = stores.some(s => s.id === activeStoreId)
+      if (!isValid) {
+        // Reset to All Stores if current ID is invalid
+        setActiveStoreId(ALL_STORES_VALUE)
+      }
+    }
+  }, [activeStoreId, stores, setActiveStoreId])
+
   // Don't show for admin users or if no stores
   if (user?.role !== 'MERCHANT' || !stores || stores.length === 0) {
     return null

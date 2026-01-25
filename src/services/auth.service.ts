@@ -55,10 +55,22 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    // Backend doesn't have logout endpoint - clear cookie client-side
-    // This is sufficient for JWT-based auth as tokens are stateless
-    if (typeof document !== 'undefined') {
+    try {
+      // Call backend to clear httpOnly cookie
+      await api.post('/auth/logout', {})
+    } catch (error) {
+      console.error('Logout API call failed:', error)
+      // Continue with client-side cleanup even if backend fails
+    }
+
+    // Clear client-side storage
+    if (typeof window !== 'undefined') {
+      // Clear cookie as backup
       document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+      document.cookie = 'token=; path=/; max-age=0;'
+
+      // Set logout flag to prevent checkAuth from re-authenticating
+      localStorage.setItem('logging_out', 'true')
     }
   }
 

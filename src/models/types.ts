@@ -51,7 +51,7 @@ export type MerchantStatus =
   | 'APPROVED'
   | 'SUSPENDED'
   | 'REJECTED'
-  // ARCHIVED removed - doesn't exist in backend
+// ARCHIVED removed - doesn't exist in backend
 
 export interface Merchant {
   id: string
@@ -346,6 +346,7 @@ export interface ApiKey {
   store?: Store
   name: string
   key: string
+  hint: string // Added to match backend response
   type: ApiKeyType
   status: ApiKeyStatus
   // ✅ REMOVED: permissions field doesn't exist in backend

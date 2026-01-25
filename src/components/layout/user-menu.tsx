@@ -19,8 +19,14 @@ export function UserMenu() {
   const { user, logout } = useAuthViewModel()
 
   const handleLogout = async () => {
+    // Call logout to clear server-side cookie
     await logout()
-    router.push('/login')
+
+    // Clear localStorage
+    localStorage.clear()
+
+    // Force immediate redirect after logout completes
+    window.location.href = '/login'
   }
 
   const getInitials = (name: string) => {

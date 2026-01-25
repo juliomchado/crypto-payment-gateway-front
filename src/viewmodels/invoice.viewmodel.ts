@@ -10,6 +10,7 @@ import type { Invoice, PaymentStatus } from '@/models/types'
 interface InvoiceState {
   invoices: Invoice[]
   selectedInvoice: Invoice | null
+  transactions: any[]
   totalInvoices: number
   currentPage: number
   totalPages: number
@@ -21,6 +22,7 @@ interface InvoiceState {
 interface InvoiceActions {
   fetchInvoices: (filters?: InvoiceFilters) => Promise<void>
   fetchInvoice: (id: string) => Promise<void>
+  fetchInvoiceTransactions: (id: string) => Promise<void>
   createInvoice: (data: CreateInvoiceData) => Promise<Invoice | null>
   generatePaymentAddress: (invoiceId: string, data: GenerateAddressData) => Promise<Invoice | null>
   setFilters: (filters: Partial<InvoiceFilters>) => void
@@ -34,6 +36,7 @@ type InvoiceViewModel = InvoiceState & InvoiceActions
 export const useInvoiceViewModel = create<InvoiceViewModel>((set, get) => ({
   invoices: [],
   selectedInvoice: null,
+  transactions: [],
   totalInvoices: 0,
   currentPage: 1,
   totalPages: 1,
@@ -68,6 +71,16 @@ export const useInvoiceViewModel = create<InvoiceViewModel>((set, get) => ({
     } catch (err) {
       const error = err as { message?: string }
       set({ error: error.message || 'Failed to fetch invoice', isLoading: false })
+    }
+  },
+
+  fetchInvoiceTransactions: async (id: string): Promise<void> => {
+    try {
+      const transactions = await invoiceService.getInvoiceTransactions(id)
+      set({ transactions })
+    } catch (err) {
+      console.error('Failed to fetch transactions:', err)
+      set({ transactions: [] })
     }
   },
 

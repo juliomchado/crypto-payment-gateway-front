@@ -44,9 +44,20 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
   ...initialState,
 
   initializePayment: async (invoiceId: string): Promise<void> => {
-    set({ isLoading: true, error: null, step: 'loading' })
+    const { invoice: currentInvoice, step } = get()
+    // Only show loading if we haven't loaded the invoice yet
+    if (!currentInvoice) {
+      set({ isLoading: true, error: null, step: 'loading' })
+    }
+
     try {
       const invoice = await invoiceService.getPublicInvoice(invoiceId)
+
+      // Fetch store currencies first for all PENDING invoice states
+      const storeCurrencies = await storeService.getStoreCurrencies(invoice.storeId)
+
+      // Filter for enabled currencies with populated currency relation
+      const enabledCurrencies = storeCurrencies.filter((sc) => sc.isEnabled && sc.currency)
 
       if (invoice.status === 'CONFIRMED') {
         set({ invoice, step: 'success', isLoading: false })
@@ -73,6 +84,7 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
           return
         }
 
+        // Don't update storeCurrencies during polling - prevents re-renders
         set({
           invoice,
           step: 'awaiting_payment',
@@ -82,24 +94,33 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
         return
       }
 
-      const storeCurrencies = await storeService.getStoreCurrencies(invoice.storeId)
-      console.log('[Payment] Store currencies fetched:', storeCurrencies)
+      // If address was already generated AND user hasn't explicitly gone back, stay on payment screen
+      if (invoice.paymentAddress && get().selectedCurrency !== null) {
+        const expiresAt = invoice.expiresAt ? new Date(invoice.expiresAt).getTime() : 0
+        const now = Date.now()
+        const timeRemaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
 
-      // Check if currencies have the currency relation populated
-      const currenciesWithRelation = storeCurrencies.filter((sc) => sc.currency)
-      console.log('[Payment] Currencies WITH currency relation:', currenciesWithRelation.length, '/', storeCurrencies.length)
-
-      // Filter for enabled currencies with populated currency relation
-      const enabledCurrencies = storeCurrencies.filter((sc) => sc.isEnabled && sc.currency)
-      console.log('[Payment] Enabled currencies with populated relation:', enabledCurrencies)
-      console.log('[Payment] Enabled currencies count:', enabledCurrencies.length)
-
-      if (enabledCurrencies.length === 0 && storeCurrencies.length > 0) {
-        console.error('[Payment] ERROR: Backend returned currencies without populated currency relation!')
-        console.error('[Payment] This is a backend bug. The endpoint /stores/:id/currencies should include currency relation.')
-        console.error('[Payment] Expected format per docs: { currencyId, currency: { id, symbol, network: {...} } }')
+        set({
+          invoice,
+          storeCurrencies: enabledCurrencies,
+          step: 'awaiting_payment',
+          timeRemaining,
+          isLoading: false,
+        })
+        return
       }
 
+      // If we are already selecting currency, only update data without resetting step
+      if (get().step === 'select_currency') {
+        set({
+          invoice,
+          storeCurrencies: enabledCurrencies,
+          // Do not reset step or loading
+        })
+        return
+      }
+
+      // First load: set to select_currency
       set({
         invoice,
         storeCurrencies: enabledCurrencies,
@@ -119,11 +140,6 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
   selectCurrency: async (currency: StoreCurrency): Promise<void> => {
     const { invoice } = get()
 
-    console.log('[selectCurrency] Invoice rates:', invoice?.rates)
-    console.log('[selectCurrency] Selected currency:', currency)
-    console.log('[selectCurrency] Looking for currencyId:', currency.currencyId)
-    console.log('[selectCurrency] Looking for networkId:', currency.currency.network?.id)
-
     // Find the corresponding rate from invoice.rates[]
     let selectedRate: InvoiceRate | null = null
     if (invoice?.rates) {
@@ -132,8 +148,6 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
           rate.currencyId === currency.currencyId &&
           rate.networkId === currency.currency.network?.id
       ) || null
-
-      console.log('[selectCurrency] Found rate:', selectedRate)
     }
 
     set({
@@ -144,19 +158,25 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
 
   generateAddress: async (data: GenerateAddressData): Promise<boolean> => {
     const { invoice, selectedRate } = get()
-    if (!invoice) return false
+    if (!invoice) {
+      return false
+    }
 
     set({ isLoading: true, error: null })
     try {
       // Generate payment address (backend returns {address, qrCode, token})
       const addressResponse = await invoiceService.generatePaymentAddress(invoice.id, data)
-      console.log('[generateAddress] Address response:', addressResponse)
-      console.log('[generateAddress] Selected rate:', selectedRate)
+
+      // Backend returns: {address: {...}, qrCode, token}
+      // The address field can be a string or an object with an 'address' property
+      const paymentAddress = typeof addressResponse.address === 'string'
+        ? addressResponse.address
+        : addressResponse.address?.address
 
       // Merge the address data with the existing invoice
       const updatedInvoice = {
         ...invoice,
-        paymentAddress: addressResponse.address?.address || addressResponse.address,
+        paymentAddress,
         networkId: data.network,
         cryptoCurrency: data.token,
         // Store the crypto amount from selectedRate
@@ -178,6 +198,7 @@ export const usePaymentViewModel = create<PaymentViewModel>((set, get) => ({
         isLoading: false,
         // Keep selectedRate for displaying exchange rate
       })
+
       return true
     } catch (err) {
       const error = err as { message?: string }
