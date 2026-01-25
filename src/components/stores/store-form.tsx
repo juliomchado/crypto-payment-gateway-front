@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,8 +19,19 @@ import {
 } from '@/components/ui/dialog'
 import type { Store } from '@/models/types'
 
+// Helper to generate slug from name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 const storeSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  slug: z.string().min(2, 'Slug must be at least 2 characters').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   isActive: z.boolean(),
   urlCallback: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   urlReturn: z.string().url('Must be a valid URL').optional().or(z.literal('')),
@@ -56,6 +68,7 @@ export function StoreForm({
     resolver: zodResolver(storeSchema),
     defaultValues: {
       name: store?.name || '',
+      slug: store?.slug || '',
       isActive: store ? store.status === 'ACTIVE' : true,
       urlCallback: store?.urlCallback || '',
       urlReturn: store?.urlReturn || '',
@@ -64,10 +77,18 @@ export function StoreForm({
   })
 
   const isActive = watch('isActive')
+  const name = watch('name')
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (name && !isEdit) {
+      setValue('slug', generateSlug(name))
+    }
+  }, [name, isEdit, setValue])
 
   const handleFormSubmit = async (data: StoreFormData) => {
     await onSubmit(data)
-    reset()
+    // Don't reset here - parent will close dialog on success
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -102,6 +123,22 @@ export function StoreForm({
               {errors.name && (
                 <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug *</Label>
+              <Input
+                id="slug"
+                placeholder="my-e-commerce"
+                {...register('slug')}
+                disabled={isLoading || isEdit}
+              />
+              {errors.slug && (
+                <p className="text-sm text-destructive">{errors.slug.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {isEdit ? 'Slug cannot be changed after creation' : 'Auto-generated from name, but you can customize it'}
+              </p>
             </div>
 
             <div className="space-y-2">

@@ -58,7 +58,7 @@ interface CreateInvoiceDialogProps {
 
 export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogProps) {
   const { toast } = useToast()
-  const { createInvoice } = useInvoiceViewModel()
+  const { createInvoice, error } = useInvoiceViewModel()
   const { stores } = useStoreViewModel()
   const { activeStoreId, isAllStores } = useActiveStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -73,10 +73,12 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
     reset,
     setValue,
     watch,
+    setError,
   } = useForm<CreateInvoiceFormData>({
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       storeId: '',
+      orderId: `ORDER-${Date.now()}`, // Auto-generate with timestamp
       currency: 'USD',
       lifespan: '3600', // 1 hour default
       isPaymentMultiple: false,
@@ -86,10 +88,16 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
 
   const selectedStoreId = watch('storeId')
 
-  // Auto-populate store when activeStoreId changes or dialog opens (but not if "All Stores")
+  // Auto-populate store and generate order ID when dialog opens
   useEffect(() => {
-    if (activeStoreId && !isAllStores && open) {
-      setValue('storeId', activeStoreId)
+    if (open) {
+      // Generate new order ID each time dialog opens
+      setValue('orderId', `ORDER-${Date.now()}`)
+
+      // Auto-populate store if not "All Stores"
+      if (activeStoreId && !isAllStores) {
+        setValue('storeId', activeStoreId)
+      }
     }
   }, [activeStoreId, isAllStores, open, setValue])
 
@@ -136,51 +144,73 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
     }
 
     try {
-      const invoice = await createInvoice({
-        store: data.storeId,
-        orderId: data.orderId,
-        amount: data.amount.toString(),
-        currency: data.currency,
-        customerEmail: data.customerEmail,
-        title: data.title || `Invoice for ${data.amount} ${data.currency}`,
-        description: data.description || `Order ${data.orderId}`,
-        fromReferralCode: null,
-        urlCallback: selectedStore.urlCallback || undefined,
-        urlSuccess: selectedStore.urlSuccess || undefined,
-        urlReturn: selectedStore.urlReturn || undefined,
-        lifespan: Number(data.lifespan),
-        isPaymentMultiple: data.isPaymentMultiple,
-        accuracyPaymentPercent: data.accuracyPaymentPercent !== undefined ? Number(data.accuracyPaymentPercent) : undefined,
-      })
 
-      if (invoice) {
-        setCreatedInvoice({
-          id: invoice.id,
-          paymentUrl: `/pay/${invoice.id}`,
+    const invoice = await createInvoice({
+      store: data.storeId,
+      orderId: data.orderId,
+      amount: data.amount.toString(),
+      currency: data.currency,
+      customerEmail: data.customerEmail,
+      title: data.title || `Invoice for ${data.amount} ${data.currency}`,
+      description: data.description || `Order ${data.orderId}`,
+      fromReferralCode: null,
+      urlCallback: selectedStore.urlCallback || undefined,
+      urlSuccess: selectedStore.urlSuccess || undefined,
+      urlReturn: selectedStore.urlReturn || undefined,
+      lifespan: Number(data.lifespan),
+      isPaymentMultiple: data.isPaymentMultiple,
+      accuracyPaymentPercent: data.accuracyPaymentPercent !== undefined ? Number(data.accuracyPaymentPercent) : undefined,
+    })
+
+    if (invoice) {
+      setCreatedInvoice({
+        id: invoice.id,
+        paymentUrl: `/pay/${invoice.id}`,
+      })
+      toast({
+        title: 'Invoice created',
+        description: 'Your invoice has been created successfully.',
+      })
+    } else {
+      // Invoice creation failed - error is in viewmodel state
+      const errorMessage = error || 'Failed to create invoice. Please try again.'
+      console.log('[CreateInvoice] Invoice creation failed. Error:', errorMessage)
+
+      // Check if it's a duplicate order_id error
+      if (errorMessage.toLowerCase().includes('order_id') && errorMessage.toLowerCase().includes('unique')) {
+        console.log('[CreateInvoice] Detected duplicate order_id error')
+
+        setError('orderId', {
+          type: 'manual',
+          message: 'This Order ID already exists. Please use a unique Order ID.',
         })
+
+        // Go back to step 1 to show the error
+        setCurrentStep(1)
+
+        // Show toast notification
+        console.log('[CreateInvoice] Showing toast for duplicate order_id')
         toast({
-          title: 'Invoice created',
-          description: 'Your invoice has been created successfully.',
+          variant: 'destructive',
+          title: 'Duplicate Order ID',
+          description: 'This Order ID already exists. Please use a unique identifier.',
+        })
+      } else {
+        // Show generic error toast for other errors
+        console.log('[CreateInvoice] Showing generic error toast')
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorMessage,
         })
       }
-    } catch (error: any) {
-      console.error('[CreateInvoice] Error creating invoice:', error)
-      console.error('[CreateInvoice] Payload sent:', {
-        store: data.storeId,
-        orderId: data.orderId,
-        amount: data.amount,
-        currency: data.currency,
-        customerEmail: data.customerEmail,
-        title: data.title,
-        description: data.description,
-        lifespan: data.lifespan,
-        isPaymentMultiple: data.isPaymentMultiple,
-        accuracyPaymentPercent: data.accuracyPaymentPercent,
-      })
+    }
+    } catch (err: any) {
+      console.error('[CreateInvoice] Unexpected error:', err)
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error?.message || 'Failed to create invoice. Please try again.',
+        description: 'An unexpected error occurred. Please try again.',
       })
     } finally {
       setIsSubmitting(false)

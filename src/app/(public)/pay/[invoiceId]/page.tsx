@@ -60,7 +60,7 @@ export default function PaymentPage() {
     if (!selectedCurrency || !invoice) return
     await generateAddress({
       token: selectedCurrency.currency.symbol,
-      network: selectedCurrency.currency.network?.name || selectedCurrency.currency.networkId,
+      network: selectedCurrency.currency.network?.standard || selectedCurrency.currency.network?.name || selectedCurrency.currency.networkId,
     })
   }
 
@@ -78,11 +78,12 @@ export default function PaymentPage() {
     new Set(storeCurrencies.map((sc) => sc.currency.network?.name || sc.currency.networkId).filter(Boolean))
   ) as string[]
 
-  // Filter currencies by selected network
+  // Filter currencies by selected network (case-insensitive)
   const filteredCurrencies = selectedNetwork
-    ? storeCurrencies.filter((sc) =>
-      sc.currency.network?.name === selectedNetwork || sc.currency.networkId === selectedNetwork
-    )
+    ? storeCurrencies.filter((sc) => {
+        const networkName = sc.currency.network?.name || sc.currency.networkId
+        return networkName?.toLowerCase() === selectedNetwork.toLowerCase()
+      })
     : []
 
   if (step === 'loading' || isLoading) {

@@ -145,11 +145,11 @@ class StoreService {
 
   // Backend has no DELETE endpoint - disable currency instead
   async removeStoreCurrency(storeId: string, currencyId: string): Promise<StoreCurrency> {
-    // To "delete", set isEnabled: false
+    // Only disable currency, don't send invalid amounts
+    // Backend validation requires minAmount > 0 and maxAmount > 0
     return this.updateStoreCurrency(storeId, currencyId, {
-      isEnabled: false,
-      minAmount: '0',
-      maxAmount: '0'
+      isEnabled: false
+      // minAmount/maxAmount omitted - backend keeps existing values
     })
   }
 

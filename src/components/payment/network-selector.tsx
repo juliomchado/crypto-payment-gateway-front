@@ -61,8 +61,9 @@ export function NetworkSelector({
   availableNetworks,
   onSelect,
 }: NetworkSelectorProps) {
+  // Case-insensitive comparison - backend returns uppercase network names
   const filteredNetworks = NETWORKS.filter((n) =>
-    availableNetworks.includes(n.id)
+    availableNetworks.some((an) => an.toLowerCase() === n.id.toLowerCase())
   )
 
   return (

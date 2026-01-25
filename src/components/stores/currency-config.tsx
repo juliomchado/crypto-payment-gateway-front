@@ -31,13 +31,13 @@ const currencyConfigSchema = z.object({
   currencyId: z.string().min(1, "Please select a currency"),
   minAmount: z
     .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
-      message: "Min amount must be a positive number",
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Min amount must be greater than 0",
     }),
   maxAmount: z
     .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
-      message: "Max amount must be a positive number",
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Max amount must be greater than 0",
     }),
   isEnabled: z.boolean(),
 });
@@ -145,35 +145,40 @@ export function CurrencyConfig({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {storeCurrencies.map((sc) => (
-            <Card
-              key={sc.id}
-              className={`cursor-pointer transition-shadow hover:shadow-md ${
-                !sc.isEnabled ? "opacity-60" : ""
-              }`}
-              onClick={() => openEditDialog(sc)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    {sc.currency.symbol}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {sc.currency.network?.title ||
-                        sc.currency.network?.name ||
-                        "Network"}
-                    </span>
-                  </CardTitle>
-                  <Switch checked={sc.isEnabled} disabled />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-muted-foreground">
-                  <p>Min: ${sc.minAmount}</p>
-                  <p>Max: ${sc.maxAmount}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {storeCurrencies.map((sc) => {
+            // Skip if currency relation is not populated
+            if (!sc.currency) return null;
+
+            return (
+              <Card
+                key={sc.id}
+                className={`cursor-pointer transition-shadow hover:shadow-md ${
+                  !sc.isEnabled ? "opacity-60" : ""
+                }`}
+                onClick={() => openEditDialog(sc)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">
+                      {sc.currency.symbol}
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        {sc.currency.network?.title ||
+                          sc.currency.network?.name ||
+                          "Network"}
+                      </span>
+                    </CardTitle>
+                    <Switch checked={sc.isEnabled} disabled />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    <p>Min: ${sc.minAmount}</p>
+                    <p>Max: ${sc.maxAmount}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

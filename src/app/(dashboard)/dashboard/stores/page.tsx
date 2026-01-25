@@ -21,21 +21,8 @@ import { useMerchant } from '@/contexts/merchant.context'
 import { useToast } from '@/hooks/use-toast'
 import type { Store } from '@/models/types'
 
-// Default Exchange Rate Source ID for API compatibility
-const DEFAULT_EXCHANGE_RATE_SOURCE_ID = '019b57ef-39ca-743a-a79c-c6f669ce291f'
-
-// Helper to generate slug from name
-const generateSlug = (name: string): string => {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
 export default function StoresPage() {
-  const { stores, isLoading, fetchStores, createStore, updateStore, deleteStore } =
+  const { stores, isLoading, error, fetchStores, createStore, updateStore, deleteStore } =
     useStoreViewModel()
   const { merchant } = useMerchant()
   const { toast } = useToast()
@@ -50,6 +37,7 @@ export default function StoresPage() {
 
   const handleCreate = async (data: {
     name: string
+    slug: string
     isActive: boolean
     urlCallback?: string
     urlReturn?: string
@@ -68,7 +56,7 @@ export default function StoresPage() {
     // merchantId and exchangeRateSourceId are auto-assigned by backend
     const store = await createStore({
       name: data.name,
-      slug: generateSlug(data.name),
+      slug: data.slug,
       status: data.isActive ? 'ACTIVE' : 'INACTIVE',
       urlCallback: data.urlCallback,
       urlReturn: data.urlReturn,
@@ -82,6 +70,12 @@ export default function StoresPage() {
         description: `${store.name} has been created successfully.`,
       })
       setIsFormOpen(false)
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create store',
+        description: error || 'An error occurred while creating the store.',
+      })
     }
   }
 
@@ -111,6 +105,12 @@ export default function StoresPage() {
       })
       setEditingStore(null)
       setIsFormOpen(false)
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to update store',
+        description: error || 'An error occurred while updating the store.',
+      })
     }
   }
 
@@ -125,6 +125,12 @@ export default function StoresPage() {
       toast({
         title: 'Store deleted',
         description: `${deletingStore.name} has been deleted.`,
+      })
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to delete store',
+        description: error || 'An error occurred while deleting the store.',
       })
     }
     setDeletingStore(null)
