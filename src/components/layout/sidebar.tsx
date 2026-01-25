@@ -18,7 +18,6 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuthViewModel } from '@/viewmodels/auth.viewmodel'
 
 interface NavItem {
@@ -80,7 +79,6 @@ interface SidebarProps {
 
 export function Sidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const { user, logout } = useAuthViewModel()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -88,7 +86,8 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
 
   const handleLogout = async () => {
     await logout()
-    router.push('/login')
+    // Force full page reload to ensure cookie is cleared
+    window.location.href = '/login'
   }
 
   return (
